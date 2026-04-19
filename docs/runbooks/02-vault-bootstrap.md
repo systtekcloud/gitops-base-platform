@@ -140,6 +140,8 @@ spec:
 
 ## EKS: push the init material to AWS Secrets Manager
 
+> Replace `<cluster-name>` with the cluster name from `terraform output cluster_name` in the infra repo.
+
 Dump the init payload locally:
 
 ```bash
@@ -150,7 +152,7 @@ Create the secret the first time:
 
 ```bash
 aws secretsmanager create-secret \
-  --name eks-monitoring/vault/init \
+  --name <cluster-name>/vault/init \
   --secret-string file:///tmp/vault-init.json
 ```
 
@@ -158,7 +160,7 @@ If the secret already exists, update it instead:
 
 ```bash
 aws secretsmanager put-secret-value \
-  --secret-id eks-monitoring/vault/init \
+  --secret-id <cluster-name>/vault/init \
   --secret-string file:///tmp/vault-init.json
 ```
 
