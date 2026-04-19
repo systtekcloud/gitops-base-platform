@@ -10,24 +10,27 @@ metadata:
 spec:
   project: platform
   source:
-    repoURL: https://charts.bitnami.com/bitnami
+    repoURL: https://cloudpirates-io.github.io/helm-charts
     chart: keycloak
-    targetRevision: 25.2.0
+    targetRevision: 0.20.5
     helm:
       values: |
-        auth:
+        keycloak:
           adminUser: admin
-          existingSecret: keycloak-admin-secret      # Created by VSO from Vault
-          passwordSecretKey: admin-password
-        postgresql:
-          enabled: false           # Usamos CloudNativePG externo
-        externalDatabase:
-          host: "keycloak-db-rw.keycloak.svc.cluster.local"
-          port: 5432
-          user: keycloak
-          database: keycloak
-          existingSecret: keycloak-db-secret         # Created by VSO from Vault
-          existingSecretPasswordKey: password
+          existingSecret: keycloak-admin-secret
+          secretKeys:
+            adminPasswordKey: admin-password
+          httpEnabled: true
+          production: true
+        database:
+          type: postgres
+          host: keycloak-postgresql.keycloak.svc.cluster.local
+          port: "5432"
+          name: keycloak
+          username: keycloak
+          existingSecret: keycloak-db-secret
+          secretKeys:
+            passwordKey: password
         service:
           type: ClusterIP
   destination:
