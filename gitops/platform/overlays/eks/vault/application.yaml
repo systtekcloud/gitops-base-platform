@@ -8,7 +8,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
-  project: platform
+  project: cloudframe-platform
   source:
     repoURL: https://helm.releases.hashicorp.com
     chart: vault

@@ -8,7 +8,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: platform
+  project: cloudframe-platform
   source:
     repoURL: https://kyverno.github.io/kyverno/
     chart: kyverno
