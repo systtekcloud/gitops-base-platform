@@ -10,7 +10,7 @@ metadata:
 spec:
   project: platform
   source:
-    repoURL: 'https://github.com/eks-vcluster-platform/eks-vcluster'  # Este repo
+    repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
     targetRevision: HEAD
     path: gitops/platform/overlays/eks/crossplane-provider-aws/manifests
   destination:
