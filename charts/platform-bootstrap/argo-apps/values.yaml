@@ -1,11 +1,11 @@
 application:
-  workspace: platform
+  workspace: cloudframe-platform
   repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
   targetRevision: HEAD
   basePath: gitops/platform/base
   overlayPath: gitops/platform/overlays/eks
   namespace: argo
-  appProjectname: platform
+  appProjectname: cloudframe-platform
 
 appProject:
   name: cloudframe-platform
