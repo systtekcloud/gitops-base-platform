@@ -1,6 +1,6 @@
 application:
   workspace: platform
-  repoURL: https://gitlab.com/eks-vcluster-platform/eks-vcluster.git
+  repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
   targetRevision: HEAD
   basePath: gitops/platform/base
   overlayPath: gitops/platform/overlays/eks
