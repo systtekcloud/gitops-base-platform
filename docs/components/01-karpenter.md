@@ -1,5 +1,9 @@
 # Karpenter Guide
 
+> **Note:** The `clusterName` and `nodeRoleName` values used in the Karpenter Helm values
+> are outputs from the infrastructure repo's Terraform apply. Check `terraform output` in
+> the infra repo if you need to update them.
+
 ## How Karpenter Works
 
 ```
