@@ -1,0 +1,34 @@
+argo-apps-kind.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-apps-kind
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: ${REPO_URL}
+      targetRevision: ${BRANCH}
+      path: gitops/platform/base
+      directory:
+        recurse: true
+        include: "*.yaml"
+    - repoURL: ${REPO_URL}
+      targetRevision: ${BRANCH}
+      path: gitops/platform/overlays/kind
+      directory:
+        recurse: true
+        include: "*.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
