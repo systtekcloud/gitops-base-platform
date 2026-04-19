@@ -7,7 +7,7 @@ metadata:
   name: keycloak-db-secret-sync
   namespace: keycloak
   annotations: 
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   type: kv-v2
   mount: secret
@@ -30,7 +30,7 @@ metadata:
   name: keycloak-vault-auth
   namespace: keycloak
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   method: kubernetes
   mount: kubernetes
@@ -44,7 +44,7 @@ metadata:
   name: keycloak-db
   namespace: keycloak
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   instances: 1
   storage:
