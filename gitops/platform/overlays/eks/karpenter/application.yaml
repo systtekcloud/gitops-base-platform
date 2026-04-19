@@ -10,8 +10,8 @@ metadata:
 spec:
   project: platform
   source:
-    repoURL: https://gitlab.com/eks-vcluster-platform/eks-vcluster.git
-    targetRevision: dev
+    repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+    targetRevision: HEAD
     path: charts/platform-bootstrap/karpenter-apps
     helm:
       values: |
