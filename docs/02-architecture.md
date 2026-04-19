@@ -1,5 +1,8 @@
 # Architecture
 
+> Infrastructure provisioning (VPC, EKS, IAM, S3 buckets) is managed by the infrastructure
+> repo. This document covers only the GitOps and platform layer.
+
 ## Design Decisions
 
 | Decision | Choice | Reason |
@@ -24,10 +27,6 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  AWS Account (eu-west-1)                                         │
-│                                                                  │
-│  S3: eks-monitoring-cluster-tfstate  (Terraform state)          │
-│  S3: eks-monitoring-cluster-velero   (Backup storage)           │
-│  IAM: GitLab OIDC Provider + tfadmin Role                       │
 │                                                                  │
 │  ┌────────────────────────────────────────────────────────────┐ │
 │  │  VPC 10.0.0.0/16                                           │ │
@@ -148,21 +147,4 @@ vault:       enabled: true   # VaultStaticSecret via VSO
 monitoring:  enabled: true   # PrometheusRule + GrafanaDashboard ConfigMap
 ingress:     enabled: true   # APISIX HTTPRoute
 backup:      enabled: false  # VeleroSchedule
-```
-
-## Repository Evolution
-
-```
-v1 (current)  Monorepo
-              terraform/ + gitops/ + charts/ in one repo
-              Simple for learning, everything visible in one place
-
-v2 (next)     Dual-repo
-              eks-platform-infra  → terraform/ + modules/
-              eks-platform-gitops → gitops/ + charts/ + docs/
-              Realistic enterprise separation of concerns
-
-v3 (advanced) Three repos
-              Infra / Platform / Apps
-              Different teams, different access controls
 ```
