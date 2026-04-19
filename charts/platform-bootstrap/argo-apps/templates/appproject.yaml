@@ -1,0 +1,22 @@
+{{- if .Values.appProject}}
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .Values.appProject.name }}
+  namespace: argo
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: {{ .Values.appProject.description }}
+  sourceRepos:
+    {{- range .Values.appProject.sourceRepos }}
+    - {{ . | quote }}
+    {{- end }}
+  destinations:
+    {{- range .Values.appProject.destinations }}
+    - name: {{ .name }}
+      namespace: {{ .namespace | quote }}
+      server: {{ .server | quote }}
+    {{- end }}
+{{- end }}

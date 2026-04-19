@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apisix
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: platform
+  source:
+    repoURL: https://charts.apiseven.com
+    chart: apisix
+    targetRevision: 2.10.0
+    helm:
+      values: |
+        service:
+          type: NodePort
+          http:
+            enabled: true
+            servicePort: 80
+            containerPort: 9080
+          tls:
+            servicePort: 443
+          stream:
+            enabled: false
+
+        metrics:
+          serviceMonitor:
+            enabled: false
+
+        apisix:
+          admin:
+            enabled: true
+            enable_admin_ui: true
+            allow:
+              ipList:
+                - 0.0.0.0/0
+          prometheus:
+            enabled: true
+
+        etcd:
+          enabled: true
+          replicaCount: 1
+          image:
+            repository: bitnamilegacy/etcd
+
+        dashboard:
+          enabled: false
+
+        ingress-controller:
+          enabled: true
+          config:
+            kubernetes:
+              ingressClass: apisix
+            apisix:
+              serviceName: apisix-admin
+              serviceNamespace: apisix
+              servicePort: 9180
+              adminAPIVersion: "v3"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apisix
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

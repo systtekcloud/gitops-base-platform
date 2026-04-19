@@ -1,0 +1,21 @@
+{{- range .Values.node_pool }}
+---
+apiVersion: karpenter.sh/v1
+kind: {{ .nodePoolKind }}
+metadata:
+  name: {{ .nodePoolName }}-node-pool
+  annotations:
+    kubernetes.io/description: "General purpose NodePool for platform and vCluster workloads"
+spec:
+  template:
+    metadata:
+      labels: {{- toYaml .labels | nindent 8 }}
+    spec:
+      requirements: {{- toYaml .requirements | nindent 8 }}
+      nodeClassRef:
+        group: {{ .nodeClassRef.group }}
+        kind: {{ .nodeClassRef.kind }}
+        name: {{ .nodeClassRef.name }}
+  limits: {{- toYaml .limits | nindent 4 }}
+  disruption: {{- toYaml .disruption | nindent 4 }}
+{{- end }}

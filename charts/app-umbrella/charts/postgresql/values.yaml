@@ -1,0 +1,5 @@
+instances: 1
+storage:
+  size: 1Gi
+database: appdb
+owner: appuser

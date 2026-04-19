@@ -1,0 +1,18 @@
+application:
+  workspace: platform
+  repoURL: https://gitlab.com/eks-vcluster-platform/eks-vcluster.git
+  targetRevision: HEAD
+  basePath: gitops/platform/base
+  overlayPath: gitops/platform/overlays/eks
+  namespace: argo
+  appProjectname: platform
+
+appProject:
+  name: platform
+  description: Platform components managed by ArgoCD
+  sourceRepos:
+    - "*"
+  destinations:
+    - name: in-cluster
+      namespace: "*"
+      server: https://kubernetes.default.svc

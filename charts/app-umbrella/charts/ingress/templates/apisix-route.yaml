@@ -1,0 +1,18 @@
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: {{ .Release.Name }}-route
+  namespace: {{ .Release.Namespace }}
+spec:
+  http:
+    - name: {{ .Release.Name }}
+      match:
+        hosts:
+          - {{ .Values.host }}
+        paths:
+          {{- range .Values.paths }}
+          - {{ .path }}
+          {{- end }}
+      backends:
+        - serviceName: {{ .Release.Name }}
+          servicePort: {{ .Values.port | default 8080 }}

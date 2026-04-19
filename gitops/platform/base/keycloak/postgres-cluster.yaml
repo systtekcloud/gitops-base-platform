@@ -1,0 +1,51 @@
+# VaultStaticSecret — VSO crea keycloak-db-secret leyendo desde Vault
+# Requiere: vault kv put secret/platform/keycloak db_password=<pass>
+# Ver: docs/runbooks/vault-seed.md
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: keycloak-db-secret-sync
+  namespace: keycloak
+spec:
+  type: kv-v2
+  mount: secret
+  path: platform/keycloak
+  destination:
+    name: keycloak-db-secret
+    create: true
+    transformation:
+      templates:
+        password:
+          text: '{{ .Secrets.db_password }}'
+        username:
+          text: keycloak
+  refreshAfter: 60s
+  vaultAuthRef: keycloak-vault-auth
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: keycloak-vault-auth
+  namespace: keycloak
+spec:
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    role: keycloak
+    serviceAccount: default
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: keycloak-db
+  namespace: keycloak
+spec:
+  instances: 1
+  storage:
+    size: 1Gi
+  bootstrap:
+    initdb:
+      database: keycloak
+      owner: keycloak
+      secret:
+        name: keycloak-db-secret    # Created by VSO above

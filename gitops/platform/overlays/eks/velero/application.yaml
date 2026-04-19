@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: platform
+  source:
+    repoURL: https://vmware-tanzu.github.io/helm-charts
+    chart: velero
+    targetRevision: 12.0.0
+    helm:
+      values: |
+        provider: aws
+        configuration:
+          backupStorageLocation:
+            - name: default
+              provider: aws
+              bucket: eks-monitoring-cluster-velero
+              config:
+                region: eu-west-1
+          volumeSnapshotLocation:
+            - name: default
+              provider: aws
+              config:
+                region: eu-west-1
+        serviceAccount:
+          server:
+            annotations:
+              eks.amazonaws.com/role-arn: ""   # Populate con IRSA ARN via Terraform output
+        initContainers:
+          - name: velero-plugin-for-aws
+            image: velero/velero-plugin-for-aws:v1.13.0
+            volumeMounts:
+              - mountPath: /target
+                name: plugins
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

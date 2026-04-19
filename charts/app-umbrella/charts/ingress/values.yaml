@@ -1,0 +1,4 @@
+host: ""
+paths:
+  - path: /*
+port: 8080

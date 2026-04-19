@@ -1,0 +1,83 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apisix
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: platform
+  source:
+    repoURL: https://charts.apiseven.com
+    chart: apisix
+    targetRevision: 2.10.0
+    helm:
+      values: |
+        service:
+          type: LoadBalancer
+          externalTrafficPolicy: Cluster
+          annotations:
+            service.beta.kubernetes.io/aws-load-balancer-type: "external"
+            service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+            service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+          http:
+            enabled: true
+            servicePort: 80
+            containerPort: 9080
+          tls:
+            servicePort: 443
+          stream:
+            enabled: true
+            tcp: [9100]
+            udp: [9200]
+
+        metrics:
+          serviceMonitor:
+            enabled: false
+
+        apisix:
+          admin:
+            enabled: true
+            enable_admin_ui: true
+            allow:
+              ipList:
+                - 0.0.0.0/0
+          prometheus:
+            enabled: true
+
+        # Subchart etcd — bitnami pinneó una tag que ya no existe.
+        # Apuntamos al repo bitnamilegacy, que conserva las imágenes viejas.
+        etcd:
+          enabled: true
+          replicaCount: 1
+          image:
+            repository: bitnamilegacy/etcd
+
+        dashboard:
+          enabled: false
+
+        # Subchart apisix-ingress-controller — el alias en Chart.yaml es
+        # "ingress-controller" (NO "apisix-ingress-controller").
+        ingress-controller:
+          enabled: true
+          config:
+            kubernetes:
+              ingressClass: apisix
+            apisix:
+              serviceName: apisix-admin
+              serviceNamespace: apisix
+              servicePort: 9180
+              # adminKey default del chart coincide con el de kind — no se
+              # overridea aquí. TODO: migrar a VaultStaticSecret cuando vault arriba.
+              adminAPIVersion: "v3"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apisix
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

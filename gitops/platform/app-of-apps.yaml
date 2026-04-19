@@ -1,0 +1,36 @@
+# =============================================================================
+# Platform App of Apps
+#
+# SYNC-WAVE ORDER:
+#   Wave 0: vault                    ← install Vault first
+#   Wave 1: vault-init               ← initialize + unseal Vault
+#           vault-secrets-operator   ← Vault connection + auth controller
+#           cloudnativepg-operator, mongodb-operator, aws-lbc,
+#           crossplane, kyverno, vcluster-operator
+#   Wave 2: apisix                   ← should read admin key from Vault
+#           keycloak                 ← should read DB/admin secrets from Vault
+#
+# ⚠️  MANUAL STEP REQUIRED after Wave 1 completes and before Wave 2 syncs:
+#     1. Retrieve the Vault root token from Secret vault-init-keys
+#     2. Enable the KV/auth mounts and seed platform secrets in Vault
+#     See docs/runbooks/vault-bootstrap.md and docs/runbooks/vault-seed.md.
+#
+#   Wave 3: prometheus-stack, velero, vclusters
+#   Wave 4: grafana                  ← depends on keycloak + prometheus
+#            kargo
+# =============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argo
+spec:
+  description: Platform components managed by ArgoCD
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'

@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: "argo-apps-{{ .Values.application.workspace }}"
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  sources:
+    - repoURL: {{ .Values.application.repoURL }}
+      targetRevision: {{ .Values.application.targetRevision }}
+      path: {{ .Values.application.basePath | quote }}
+      directory:
+        recurse: true
+        include: "*.yaml"
+    - repoURL: {{ .Values.application.repoURL }}
+      targetRevision: {{ .Values.application.targetRevision }}
+      path: {{ .Values.application.overlayPath | quote }}
+      directory:
+        recurse: true
+        include: "*.yaml"
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: {{ .Values.application.namespace }}
+  project: {{ .Values.application.appProjectname }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - ServerSideApply=false
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas

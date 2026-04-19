@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vcluster-dev
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: platform
+  source:
+    repoURL: https://charts.loft.sh
+    chart: vcluster
+    targetRevision: 0.20.0
+    helm:
+      values: |
+        controlPlane:
+          distro:
+            k8s:
+              enabled: true
+          statefulSet:
+            resources:
+              requests:
+                memory: 256Mi
+                cpu: 100m
+        sync:
+          toHost:
+            ingresses:
+              enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vcluster-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

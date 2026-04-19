@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  project: platform
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: grafana
+    targetRevision: 10.5.15
+    helm:
+      values: |
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: Prometheus
+                type: prometheus
+                url: http://prometheus-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090
+                isDefault: true
+        grafana.ini:
+          server:
+            root_url: "https://grafana.example.com"
+          auth.generic_oauth:
+            enabled: true
+            name: Keycloak
+            allow_sign_up: true
+            client_id: grafana
+            client_secret: ""       # Populate via VSO
+            scopes: openid email profile
+            auth_url: "http://keycloak.keycloak.svc.cluster.local/realms/platform/protocol/openid-connect/auth"
+            token_url: "http://keycloak.keycloak.svc.cluster.local/realms/platform/protocol/openid-connect/token"
+            api_url: "http://keycloak.keycloak.svc.cluster.local/realms/platform/protocol/openid-connect/userinfo"
+        service:
+          type: ClusterIP
+        sidecar:
+          dashboards:
+            enabled: true
+            searchNamespace: ALL   # Busca ConfigMaps con dashboards en todos los namespaces
+          datasources:
+            enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

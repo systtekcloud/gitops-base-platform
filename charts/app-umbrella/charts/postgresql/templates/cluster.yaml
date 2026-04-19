@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Release.Name }}-db
+  namespace: {{ .Release.Namespace }}
+spec:
+  instances: {{ .Values.instances }}
+  storage:
+    size: {{ .Values.storage.size }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.database }}
+      owner: {{ .Values.owner }}
+      secret:
+        name: {{ .Release.Name }}-db-secret

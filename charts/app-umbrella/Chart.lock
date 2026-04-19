@@ -1,0 +1,15 @@
+dependencies:
+- name: monitoring
+  repository: file://charts/monitoring
+  version: 0.1.0
+- name: ingress
+  repository: file://charts/ingress
+  version: 0.1.0
+- name: postgresql
+  repository: file://charts/postgresql
+  version: 0.1.0
+- name: vault-secret
+  repository: file://charts/vault-secret
+  version: 0.1.0
+digest: sha256:bdc210cb3bb2da3b0338e7eba9b281d5299c7805f672d346a469d92a3f75b32a
+generated: "2026-04-13T05:50:00.895978738+02:00"

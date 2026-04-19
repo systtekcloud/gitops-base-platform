@@ -1,0 +1,4 @@
+apiVersion: v2
+name: vault-secret
+version: 0.1.0
+description: VaultStaticSecret resources for Vault Secrets Operator

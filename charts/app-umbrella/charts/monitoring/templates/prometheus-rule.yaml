@@ -1,0 +1,14 @@
+{{- if .Values.rules }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}-rules
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: prometheus-stack    # Label que prometheus-operator busca
+spec:
+  groups:
+    - name: {{ .Release.Name }}
+      rules:
+        {{- toYaml .Values.rules | nindent 8 }}
+{{- end }}

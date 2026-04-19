@@ -1,0 +1,22 @@
+{{- range .Values.ec2_node_class }}
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: {{ .nodeClassKind }}
+metadata:
+  name: {{ .nodeClassName }}-node-class
+  annotations:
+    kubernetes.io/description: "EC2NodeClass for {{ .nodeClassName }} workloads using AL2023"
+spec:
+  amiFamily: {{ .spec.amiFamily }}
+  amiSelectorTerms: {{- toYaml .spec.amiSelectorTerms | nindent 4 }}
+  role: {{ $.Values.nodeRoleName }}
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ $.Values.clusterName }}
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ $.Values.clusterName }}
+  tags:
+    intent: apps
+    karpenter.sh/discovery: {{ $.Values.clusterName }}
+{{- end }}

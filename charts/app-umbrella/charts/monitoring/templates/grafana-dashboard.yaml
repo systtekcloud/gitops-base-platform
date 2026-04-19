@@ -1,0 +1,12 @@
+{{- range .Values.dashboards }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-dashboard-{{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"       # Label que Grafana sidecar busca
+data:
+  {{ .name }}.json: |
+    {{- .json | nindent 4 }}
+{{- end }}

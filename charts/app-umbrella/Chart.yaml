@@ -1,0 +1,24 @@
+apiVersion: v2
+name: app-umbrella
+description: Platform umbrella chart template for deploying apps with full platform integration
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: monitoring
+    version: "0.1.0"
+    repository: "file://charts/monitoring"
+    condition: monitoring.enabled
+  - name: ingress
+    version: "0.1.0"
+    repository: "file://charts/ingress"
+    condition: ingress.enabled
+  - name: postgresql
+    version: "0.1.0"
+    repository: "file://charts/postgresql"
+    condition: postgresql.enabled
+  - name: vault-secret
+    version: "0.1.0"
+    repository: "file://charts/vault-secret"
+    condition: vault.enabled

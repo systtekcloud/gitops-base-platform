@@ -1,0 +1,74 @@
+# Nombre de la aplicación — se usa para nombrar todos los recursos
+nameOverride: ""
+
+# Namespace donde se despliega la app
+namespace: ""
+
+app:
+  enabled: true
+  image:
+    repository: ""
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  port: 8080
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env: []
+  envFrom: []
+
+postgresql:
+  enabled: false
+  instances: 1
+  storage:
+    size: 1Gi
+  database: appdb
+  owner: appuser
+
+mongodb:
+  enabled: false
+  members: 1
+  storage:
+    size: 1Gi
+
+crossplane:
+  enabled: false
+  claim: {}
+  # Ejemplo:
+  # claim:
+  #   apiVersion: aws.platform.io/v1alpha1
+  #   kind: XS3Bucket
+  #   spec:
+  #     region: eu-west-1
+
+vault:
+  enabled: false
+  secrets: []
+  # Ejemplo:
+  # secrets:
+  #   - name: my-app-secret
+  #     path: secret/data/myapp
+  #     destination: my-k8s-secret
+
+monitoring:
+  enabled: true
+  rules: []
+  dashboards: []
+
+ingress:
+  enabled: false
+  host: ""
+  paths:
+    - path: /
+      pathType: Prefix
+
+backup:
+  enabled: false
+  schedule: "@daily"
+  ttl: 72h
+  includedNamespaces: []

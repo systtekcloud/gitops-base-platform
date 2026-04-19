@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: platform
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: keycloak
+    targetRevision: 25.2.0
+    helm:
+      values: |
+        auth:
+          adminUser: admin
+          existingSecret: keycloak-admin-secret      # Created by VSO from Vault
+          passwordSecretKey: admin-password
+        postgresql:
+          enabled: false           # Usamos CloudNativePG externo
+        externalDatabase:
+          host: "keycloak-db-rw.keycloak.svc.cluster.local"
+          port: 5432
+          user: keycloak
+          database: keycloak
+          existingSecret: keycloak-db-secret         # Created by VSO from Vault
+          existingSecretPasswordKey: password
+        service:
+          type: ClusterIP
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

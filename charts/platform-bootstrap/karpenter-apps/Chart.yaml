@@ -1,0 +1,6 @@
+apiVersion: v2
+name: karpenter-config
+description: Karpenter NodePool and EC2NodeClass configuration for the EKS platform cluster
+type: application
+version: 0.1.0
+appVersion: "1.11.1"
