@@ -3,8 +3,9 @@
 This repo is the GitOps source of truth for the platform. It contains ArgoCD Applications,
 platform manifests, environment overlays for `kind` and `EKS`, and operational runbooks.
 
-> **Infrastructure provisioning** (EKS cluster, VPC, Karpenter, initial ArgoCD install) is
-> managed by the infrastructure repo. Complete those steps first before continuing here.
+> **Infrastructure provisioning** (cluster creation, CNI, APISIX, Vault) must be completed
+> before continuing here. Those steps are managed by the infrastructure repo or by manual
+> scripts depending on the environment.
 
 ## Prerequisites
 
@@ -15,9 +16,13 @@ helm version               # >= 3.14
 
 `kubectl` context must already point at the target cluster (kind or EKS).
 
-## Step 1 — Install ArgoCD (kind only)
+Vault must already be installed, initialized, unsealed, and have secrets seeded.
+See [runbooks/02-vault-bootstrap.md](runbooks/02-vault-bootstrap.md) and
+[runbooks/03-vault-seed.md](runbooks/03-vault-seed.md).
 
-Skip this step for EKS — ArgoCD is installed by the infrastructure repo.
+## Initializing ArgoCD — kind
+
+### Step 1 — Install ArgoCD
 
 ```bash
 helm repo add argo https://argoproj.github.io/argo-helm
@@ -30,132 +35,122 @@ helm upgrade --install argocd argo/argo-cd \
   --set server.service.type=NodePort
 ```
 
-Verify the control plane is up:
+Wait for ArgoCD to be ready:
 
 ```bash
 kubectl get pods -n argo
+# All pods must be Running before continuing
 ```
 
-## Step 2 — Apply the platform AppProject
+### Step 2 — Create the AppProject
+
+The AppProject defines what repos and namespaces ArgoCD is allowed to manage.
 
 ```bash
-helm template argo-apps charts/cloudframe-bootstrap/argo-apps \
-  --show-only templates/appproject.yaml \
-  | kubectl apply -f -
+kubectl apply -f gitops/platform/app-of-apps.yaml
 ```
 
 Verify:
 
 ```bash
-kubectl get appproject platform -n argo
+kubectl get appproject cloudframe-platform -n argo
 ```
 
-## Step 3 — Apply the root Application
+### Step 3 — Apply the root Application
 
-### kind
+This is the entry point for the App of Apps pattern. ArgoCD reads this manifest,
+then discovers and creates all child Applications from the paths defined inside it.
 
 ```bash
-export REPO_URL="$(git remote get-url origin)"
-export BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-
-cat <<EOF | kubectl apply -f -
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: argo-apps-kind
-  namespace: argo
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: platform
-  sources:
-    - repoURL: ${REPO_URL}
-      targetRevision: ${BRANCH}
-      path: gitops/platform/base
-      directory:
-        recurse: true
-        include: "*.yaml"
-    - repoURL: ${REPO_URL}
-      targetRevision: ${BRANCH}
-      path: gitops/platform/overlays/kind
-      directory:
-        recurse: true
-        include: "*.yaml"
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: argo
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-      allowEmpty: true
-    syncOptions:
-      - CreateNamespace=true
-      - PruneLast=true
-EOF
+kubectl apply -f argo-manifests/kind/argo-apps-kind.yml
 ```
 
-### EKS
+Verify ArgoCD starts discovering Applications:
+
+```bash
+kubectl get applications -n argo
+# Within ~30s you should see child Applications appearing
+```
+
+### Step 4 — Access the ArgoCD UI
+
+```bash
+kubectl port-forward svc/argocd-server -n argo 8080:80 &
+
+kubectl get secret argocd-initial-admin-secret -n argo \
+  -o jsonpath='{.data.password}' | base64 -d && echo
+```
+
+Open `http://localhost:8080` — login: `admin` / password from above.
+
+### Step 5 — Watch platform sync
+
+ArgoCD syncs components in waves. Expected order:
+
+```
+Wave 1: kyverno, mongodb-operator, crossplane       (~3 min)
+Wave 3: keycloak-secrets (VSO sync + PostgreSQL)    (~2 min)
+Wave 4: keycloak, grafana, kargo                    (~5 min)
+```
+
+> Wave 3 (keycloak-secrets) requires Vault and VSO to be running. If it stays
+> OutOfSync, check that Vault is reachable and VSO is installed.
+
+### Step 6 — Verify
+
+```bash
+kubectl get applications -n argo
+# All apps: Synced + Healthy
+```
+
+## Initializing ArgoCD — EKS
+
+ArgoCD and Vault are installed by Terraform (infrastructure repo). Once the cluster
+is up, bootstrap ArgoCD with:
 
 ```bash
 helm upgrade --install argo-apps charts/cloudframe-bootstrap/argo-apps \
   --namespace argo \
   --set application.repoURL=https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git \
-  --set application.targetRevision=HEAD
+  --set application.targetRevision=HEAD \
+  --set application.overlayPath=gitops/platform/overlays/eks
 ```
 
-## Step 4 — Bootstrap Vault
+## Understanding the App of Apps pattern
 
-⚠️ **Required before the platform finishes syncing.**
-
-Vault deploys in wave 0 and initializes automatically in wave 1. Components in wave 2+
-depend on secrets existing in Vault. Follow these runbooks in order:
-
-1. [runbooks/02-vault-bootstrap.md](runbooks/02-vault-bootstrap.md) — initialize, unseal, enable mounts
-2. [runbooks/03-vault-seed.md](runbooks/03-vault-seed.md) — seed platform secrets
-
-## Step 5 — Watch platform sync
-
-```bash
-kubectl port-forward svc/argocd-server -n argo 8080:443 &
-
-kubectl -n argo get secret argocd-initial-admin-secret \
-  -o jsonpath="{.data.password}" | base64 -d && echo
+```
+argo-apps-kind.yml  (root Application — you apply this once)
+    │
+    ▼
+ArgoCD reads gitops/platform/base/ and gitops/platform/overlays/kind/
+    │
+    ├── crossplane-operator/application.yaml  → creates Application "crossplane"
+    ├── kyverno/application.yaml              → creates Application "kyverno"
+    ├── keycloak-secrets/application.yaml     → creates Application "keycloak-secrets"
+    ├── keycloak/application.yaml             → creates Application "keycloak"
+    └── ...
 ```
 
-Open `http://localhost:8080` — login: `admin` / password from above.
-
-Expected sync order:
-1. `vault` → Healthy (~2 min)
-2. Wave 1 components sync in parallel (~5 min)
-3. `vault-secrets-operator`, `apisix`, `keycloak` sync (~5 min)
-4. `prometheus-stack`, `velero`, vClusters sync (~5 min)
-5. `grafana`, `kargo` sync (~3 min)
-
-Total: ~20–25 min after root Application is applied.
-
-## Step 6 — Verify
-
-```bash
-kubectl get applications -n argo
-# All apps should be Synced + Healthy
-```
+Each child Application then installs its Helm chart or applies its manifests.
+Sync waves control the order: wave 1 runs first, wave 4 runs last.
 
 ## Runbooks
 
 | Order | Runbook | When to use |
 |---|---|---|
-| 1 | [01-kind-overlay.md](runbooks/01-kind-overlay.md) | First-time kind cluster setup |
-| 2 | [02-vault-bootstrap.md](runbooks/02-vault-bootstrap.md) | After Vault deploys — initialize and configure |
-| 3 | [03-vault-seed.md](runbooks/03-vault-seed.md) | After Vault bootstrap — seed platform secrets |
-| 4 | [04-deploy-app.md](runbooks/04-deploy-app.md) | Deploy a new application |
-| 5 | [05-promote-app.md](runbooks/05-promote-app.md) | Promote app between environments |
+| 1 | [01-kind-overlay.md](runbooks/01-kind-overlay.md) | Reference for kind-specific setup decisions |
+| 2 | [02-vault-bootstrap.md](runbooks/02-vault-bootstrap.md) | Configure VSO to connect to Vault |
+| 3 | [03-vault-seed.md](runbooks/03-vault-seed.md) | Seed platform secrets into Vault |
+| 4 | [06-keycloak-prerequisites.md](runbooks/06-keycloak-prerequisites.md) | Understand the prerequisites pattern |
+| 5 | [04-deploy-app.md](runbooks/04-deploy-app.md) | Deploy a new application |
+| 6 | [05-promote-app.md](runbooks/05-promote-app.md) | Promote app between environments |
 
 ## Troubleshooting
 
 | Symptom | Command | Likely cause |
 |---|---|---|
-| ArgoCD app stuck `OutOfSync` | `kubectl describe application <name> -n argo` | Repo not reachable or YAML error |
-| Vault pod not starting | `kubectl describe pod vault-0 -n vault` | PVC pending — check StorageClass |
-| vCluster pods `Pending` | `kubectl get nodeclaim -A` | Karpenter provisioning nodes, wait 60s |
-| Keycloak crashloop | `kubectl logs -n keycloak deploy/keycloak` | Vault secret not seeded — run Step 4 |
+| Applications not appearing after step 3 | `kubectl describe application argo-apps-kind -n argo` | Repo not reachable or wrong repoURL |
+| App stuck `OutOfSync` | `kubectl describe application <name> -n argo` | YAML error or missing CRD |
+| keycloak-secrets `OutOfSync` | `kubectl get vaultconnection -n keycloak` | VaultConnection missing or Vault unreachable |
+| Keycloak crashloop | `kubectl logs -n keycloak deploy/keycloak` | keycloak-db-secret not synced yet — check VSO |
+| vCluster pods `Pending` (EKS) | `kubectl get nodeclaim -A` | Karpenter provisioning nodes, wait 60s |
