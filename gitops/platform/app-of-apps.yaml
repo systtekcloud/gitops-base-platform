@@ -20,7 +20,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: platform
+  name: cloudframe-platform
   namespace: argo
 spec:
   description: Platform components managed by ArgoCD

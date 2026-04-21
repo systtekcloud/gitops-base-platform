@@ -39,7 +39,7 @@ kubectl get pods -n argo
 ## Step 2 — Apply the platform AppProject
 
 ```bash
-helm template argo-apps charts/platform-bootstrap/argo-apps \
+helm template argo-apps charts/cloudframe-bootstrap/argo-apps \
   --show-only templates/appproject.yaml \
   | kubectl apply -f -
 ```
@@ -98,7 +98,7 @@ EOF
 ### EKS
 
 ```bash
-helm upgrade --install argo-apps charts/platform-bootstrap/argo-apps \
+helm upgrade --install argo-apps charts/cloudframe-bootstrap/argo-apps \
   --namespace argo \
   --set application.repoURL=https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git \
   --set application.targetRevision=HEAD
