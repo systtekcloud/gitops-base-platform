@@ -10,9 +10,9 @@ metadata:
 spec:
   project: cloudframe-platform
   source:
-    repoURL: https://github.com/systtekcloud/gitops-base-platform.git
+    repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
     targetRevision: HEAD
-    path: gitops/platform/jobs/keycloak-secrets
+    path: gitops/platform/prerequisites/keycloak
   destination:
     server: https://kubernetes.default.svc
     namespace: keycloak
