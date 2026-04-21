@@ -13,7 +13,7 @@
 | Platform placement | Host cluster | Learn once, reuse across vClusters |
 | Apps placement | Inside vClusters | Env isolation where it matters |
 | Promotion pipeline | Kargo | GitOps-native dev → pre → pro |
-| PostgreSQL operator | CloudNativePG | CNCF project, actively maintained |
+| PostgreSQL (Keycloak) | postgres:17-alpine StatefulSet | Simple, no operator needed for single DB |
 | MongoDB operator | MongoDB Community | Standard operator |
 | Secrets pattern | Vault Secrets Operator (Pattern B) | Apps see native K8s Secrets, no Vault SDK coupling |
 | Ingress | APISIX + AWS LBC | API Gateway capabilities, AWS-native NLB provisioning |
@@ -50,12 +50,11 @@
 │  │  │  ┌─────────────────────────────────────────────────┐ │ │ │
 │  │  │  │  Platform namespaces (managed by ArgoCD)         │ │ │ │
 │  │  │  │                                                  │ │ │ │
-│  │  │  │  vault          · vault-secrets-operator         │ │ │ │
+│  │  │  │  [external] vault · vault-secrets-operator       │ │ │ │
+│  │  │  │  [external] apisix                               │ │ │ │
 │  │  │  │  monitoring     · grafana                        │ │ │ │
-│  │  │  │  keycloak       · apisix                         │ │ │ │
-│  │  │  │  velero         · crossplane-system              │ │ │ │
-│  │  │  │  cnpg-system    · mongodb-operator               │ │ │ │
-│  │  │  │  kyverno        · vcluster-platform              │ │ │ │
+│  │  │  │  keycloak       · crossplane-system              │ │ │ │
+│  │  │  │  mongodb-operator · kyverno                      │ │ │ │
 │  │  │  └─────────────────────────────────────────────────┘ │ │ │
 │  │  │  ┌───────────┐ ┌───────────┐ ┌───────────┐          │ │ │
 │  │  │  │vcluster-dev│ │vcluster-pre│ │vcluster-pro│         │ │ │
@@ -69,27 +68,24 @@
 
 ## Sync-Wave Order
 
-ArgoCD deploys platform components in waves. Each wave completes before the next starts.
+ArgoCD deploys platform components in waves. Vault and APISIX are installed externally
+(Helm or Terraform) before ArgoCD bootstrap.
 
 ```
-Wave 0  Vault
-        └── No dependencies. Must be first — VSO and other components
-            depend on secrets existing in Vault.
-        ⚠️  MANUAL: seed secrets into Vault before wave 1 proceeds.
-            See docs/runbooks/vault-seed.md
+Pre-ArgoCD (manual)
+        Vault + VSO      ← installed with Helm, initialized and unsealed manually
+        APISIX           ← installed with Helm (kind) or AWS LBC (EKS)
 
-Wave 1  AWS LBC · Crossplane · Kyverno · vCluster operator
-        CloudNativePG operator · MongoDB operator
-        └── No inter-dependencies. All can sync in parallel.
+Wave 1  Crossplane · Kyverno · MongoDB operator
+        └── No inter-dependencies. All sync in parallel.
 
-Wave 2  Vault Secrets Operator  (← Vault must be ready)
-        APISIX                  (← AWS LBC must be ready)
-        Keycloak                (← CloudNativePG op must be ready)
+Wave 3  keycloak-secrets  ← VaultStaticSecret sync (requires VSO + Vault ready)
+        PostgreSQL        ← keycloak DB (requires keycloak-db-secret from wave 3 sync)
+        Prometheus Stack  ← no Vault dependency
 
-Wave 3  Prometheus Stack · Velero · vClusters (dev/pre/pro)
-
-Wave 4  Grafana  (← Keycloak + Prometheus must be ready)
-        Kargo    (← ArgoCD must be fully operational)
+Wave 4  Keycloak   (← keycloak-db-secret + keycloak-admin-secret must exist)
+        Grafana    (← Keycloak + Prometheus must be ready)
+        Kargo      (← ArgoCD must be fully operational)
 ```
 
 ## Secret Flow
