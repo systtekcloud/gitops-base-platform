@@ -1,23 +1,21 @@
 # =============================================================================
 # Platform App of Apps
 #
-# SYNC-WAVE ORDER:
-#   Wave 0: vault                    ← install Vault first
-#   Wave 1: vault-init               ← initialize + unseal Vault
-#           vault-secrets-operator   ← Vault connection + auth controller
-#           cloudnativepg-operator, mongodb-operator, aws-lbc,
-#           crossplane, kyverno, vcluster-operator
-#   Wave 2: apisix                   ← should read admin key from Vault
-#           keycloak                 ← should read DB/admin secrets from Vault
+# PREREQUISITO (scripts manuales, antes de aplicar este manifiesto):
+#   1. ./scripts/02-install-cni-metallb.sh dev|pro
+#   2. ./scripts/03-install-apisix.sh dev|pro       ← APISIX no lo gestiona ArgoCD
+#   3. ./scripts/04-install-argocd.sh dev|pro
+#   4. ./scripts/05-install-vault.sh dev|pro         ← Vault+VSO no los gestiona ArgoCD
+#      + init + unseal manual
+#      + ./scripts/05-seed-vault.sh dev|pro          ← secrets deben existir antes de Wave 3
 #
-# ⚠️  MANUAL STEP REQUIRED after Wave 1 completes and before Wave 2 syncs:
-#     1. Retrieve the Vault root token from Secret vault-init-keys
-#     2. Enable the KV/auth mounts and seed platform secrets in Vault
-#     See docs/runbooks/vault-bootstrap.md and docs/runbooks/vault-seed.md.
-#
-#   Wave 3: prometheus-stack, velero, vclusters
-#   Wave 4: grafana                  ← depends on keycloak + prometheus
-#            kargo
+# SYNC-WAVE ORDER (solo lo que gestiona ArgoCD):
+#   Wave 1: kyverno, mongodb-operator, crossplane    ← operators
+#   Wave 3: keycloak-secrets                         ← VaultStaticSecret+VaultAuth (requiere VSO)
+#           prometheus-stack
+#   Wave 4: keycloak                                 ← requiere secrets de Wave 3
+#           grafana                                  ← requiere keycloak + prometheus
+#           kargo
 # =============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject

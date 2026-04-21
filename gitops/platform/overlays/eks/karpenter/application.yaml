@@ -8,9 +8,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: cloudframe-platform
+  project: platform
   source:
-    repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+    repoURL: https://github.com/systtekcloud/gitops-base-platform.git
     targetRevision: HEAD
     path: charts/platform-bootstrap/karpenter-apps
     helm:

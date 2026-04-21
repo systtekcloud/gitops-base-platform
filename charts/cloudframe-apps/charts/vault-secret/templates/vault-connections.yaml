@@ -1,0 +1,22 @@
+{{- if and .Values.vaultResources.enabled .Values.vaultResources.connections }}
+{{- $defaultNamespace := include "cloudframe-platform.vaultDefaultNamespace" . -}}
+{{- range .Values.vaultResources.connections }}
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: {{ required "vaultResources.connections[].name is required" .name }}
+  namespace: {{ default $defaultNamespace .namespace }}
+  labels:
+    {{- include "cloudframe-platform.labels" $ | nindent 4 }}
+spec:
+  address: {{ required (printf "vaultResources.connections[%s].address is required" .name) .address | quote }}
+  skipTLSVerify: {{ default false .skipTLSVerify }}
+  {{- with .tlsServerName }}
+  tlsServerName: {{ . | quote }}
+  {{- end }}
+  {{- with .caCertSecretRef }}
+  caCertSecretRef: {{ . | quote }}
+  {{- end }}
+{{- end }}
+{{- end }}

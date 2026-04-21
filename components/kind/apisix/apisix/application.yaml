@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apisix
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: platform
+  source:
+    repoURL: https://charts.apiseven.com
+    chart: apisix
+    targetRevision: 2.9.0
+    helm:
+      values: |
+        apisix:
+          enabled: true
+        ingress-controller:
+          enabled: true
+          config:
+            apisix:
+              adminKey: ""
+              serviceNamespace: ingress-apisix
+        service:
+          type: LoadBalancer
+        gateway:
+          type: LoadBalancer
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ingress-apisix
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

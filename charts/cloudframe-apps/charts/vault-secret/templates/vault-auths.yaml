@@ -1,0 +1,41 @@
+{{- if and .Values.vaultResources.enabled .Values.vaultResources.auths }}
+{{- $defaultNamespace := include "cloudframe-platform.vaultDefaultNamespace" . -}}
+{{- range .Values.vaultResources.auths }}
+{{- $auth := . }}
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: {{ required "vaultResources.auths[].name is required" .name }}
+  namespace: {{ default $defaultNamespace .namespace }}
+  labels:
+    {{- include "cloudframe-platform.labels" $ | nindent 4 }}
+spec:
+  vaultConnectionRef: {{ required (printf "vaultResources.auths[%s].vaultConnectionRef is required" .name) .vaultConnectionRef }}
+  method: {{ required (printf "vaultResources.auths[%s].method is required" .name) .method }}
+  mount: {{ required (printf "vaultResources.auths[%s].mount is required" .name) .mount | quote }}
+  {{- with .namespaceInVault }}
+  namespace: {{ . | quote }}
+  {{- end }}
+  {{- with .headers }}
+  headers:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .params }}
+  params:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .kubernetes }}
+  kubernetes:
+    role: {{ required (printf "vaultResources.auths[%s].kubernetes.role is required" $auth.name) .role | quote }}
+    serviceAccount: {{ required (printf "vaultResources.auths[%s].kubernetes.serviceAccount is required" $auth.name) .serviceAccount | quote }}
+    {{- with .audiences }}
+    audiences:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .tokenExpirationSeconds }}
+    tokenExpirationSeconds: {{ . }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
