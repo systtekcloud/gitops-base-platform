@@ -10,9 +10,9 @@ metadata:
 spec:
   project: cloudframe-platform
   source:
-    repoURL: https://github.com/systtekcloud/gitops-base-platform.git
+    repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
     targetRevision: HEAD
-    path: charts/platform-bootstrap/karpenter-apps
+    path: charts/cloudframe-bootstrap/karpenter-apps
     helm:
       values: |
         clusterName: eks-vcluster-dev

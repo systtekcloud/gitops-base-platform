@@ -33,7 +33,7 @@ kubectl get svc argocd-server -n argo
 Render the Helm template and apply only the `AppProject` resource:
 
 ```bash
-helm template argo-apps charts/platform-bootstrap/argo-apps \
+helm template argo-apps charts/cloudframe-bootstrap/argo-apps \
   --show-only templates/appproject.yaml \
   | kubectl apply -f -
 ```
@@ -41,7 +41,7 @@ helm template argo-apps charts/platform-bootstrap/argo-apps \
 Verify:
 
 ```bash
-kubectl get appproject platform -n argo
+kubectl get appproject cloudframe-platform -n argo
 ```
 
 ## Apply the root Application for the kind overlay
@@ -65,7 +65,7 @@ metadata:
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: platform
+  project: cloudframe-platform
   sources:
     - repoURL: ${REPO_URL}
       targetRevision: ${BRANCH}

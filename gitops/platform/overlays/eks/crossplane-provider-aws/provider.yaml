@@ -10,7 +10,7 @@ metadata:
 spec:
   project: cloudframe-platform
   source:
-    repoURL: https://github.com/systtekcloud/gitops-base-platform.git
+    repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
     targetRevision: HEAD
     path: gitops/platform/overlays/eks/crossplane-provider-aws/manifests
   destination:
