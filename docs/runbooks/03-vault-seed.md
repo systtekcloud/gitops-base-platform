@@ -1,16 +1,20 @@
 # Runbook: Vault Secret Seeding
 
-Use this after the initial Vault bootstrap in [vault-bootstrap.md](vault-bootstrap.md). The `vault-init` Job creates `vault-init-keys`; this runbook focuses on seeding the secrets consumed by platform components.
+Use this after Vault is initialized and unsealed. See [02-vault-bootstrap.md](02-vault-bootstrap.md) first if you haven't configured VSO yet. This runbook seeds the secrets consumed by platform components via VaultStaticSecret.
 
 ## When to run this
 
-After Vault is initialized and unsealed, before ArgoCD wave 2 consumers sync successfully.
+After Vault is initialized and unsealed, before ArgoCD wave 3 (keycloak-secrets) syncs.
 
 ## Export the Vault root token
 
 ```bash
-export VAULT_ROOT_TOKEN="$(kubectl get secret vault-init-keys -n vault -o jsonpath='{.data.root_token}' | base64 -d)"
+export VAULT_ROOT_TOKEN="<your-root-token>"
 ```
+
+The root token was generated during Vault initialization. For kind, retrieve it from
+wherever you stored it. For EKS, retrieve it from AWS Secrets Manager
+(`<cluster-name>/vault/init`).
 
 ## Verify Vault is ready
 
@@ -27,14 +31,14 @@ kubectl exec -it vault-0 -n vault -- \
 
 ### Keycloak secrets
 
-Used by CloudNativePG and Keycloak.
+Used by VSO to create `keycloak-db-secret` and `keycloak-admin-secret` in the keycloak namespace.
 
 ```bash
 kubectl exec -it vault-0 -n vault -- \
   env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
-  vault kv put secret/platform/keycloak \
+  vault kv put secret/dev/keycloak \
     db_password=<choose-a-password> \
-    admin-password=<choose-a-password>
+    admin_password=<choose-a-password>
 ```
 
 ### Verify the write
@@ -42,7 +46,7 @@ kubectl exec -it vault-0 -n vault -- \
 ```bash
 kubectl exec -it vault-0 -n vault -- \
   env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
-  vault kv get secret/platform/keycloak
+  vault kv get secret/dev/keycloak
 ```
 
 ## App secrets before app deployment
