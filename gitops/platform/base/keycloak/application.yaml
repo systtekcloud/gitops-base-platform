@@ -31,7 +31,7 @@ spec:
           existingSecret: keycloak-db-secret
           secretKeys:
             passwordKey: password
-        postgresql:
+        postgres:
           enabled: false
         service:
           type: ClusterIP
