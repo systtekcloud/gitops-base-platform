@@ -1,1 +1,47 @@
-secrets: []
+vaultResources:
+  enabled: false
+  defaultNamespace: ""
+
+  # VaultConnection — defines where Vault is running.
+  # One connection per namespace is typical.
+  connections: []
+  # Example:
+  # - name: vault-connection
+  #   address: http://vault.vault.svc.cluster.local:8200
+  #   skipTLSVerify: true
+
+  # ServiceAccounts — created for VSO to use when authenticating.
+  serviceAccounts: []
+  # Example:
+  # - name: my-app-vso-sa
+  #   namespace: my-app
+
+  # VaultAuth — tells VSO how to authenticate with Vault.
+  # References a VaultConnection and a Kubernetes auth role.
+  auths: []
+  # Example:
+  # - name: my-app-vault-auth
+  #   vaultConnectionRef: vault-connection
+  #   method: kubernetes
+  #   mount: kubernetes
+  #   kubernetes:
+  #     role: my-app
+  #     serviceAccount: my-app-vso-sa
+
+  # VaultStaticSecret — syncs a Vault KV secret into a K8s Secret.
+  # VSO watches the Vault path and keeps the K8s Secret in sync.
+  staticSecrets: []
+  # Example:
+  # - name: my-app-secret-sync
+  #   vaultAuthRef: my-app-vault-auth
+  #   mount: secret
+  #   type: kv-v2
+  #   path: dev/my-app
+  #   refreshAfter: 1m
+  #   destination:
+  #     name: my-app-secret
+  #     create: true
+  #     transformation:
+  #       templates:
+  #         password:
+  #           text: '{{ .Secrets.password }}'
