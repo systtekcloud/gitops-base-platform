@@ -1,5 +1,7 @@
 # Runbook: Promote an App via Kargo (dev → pre → pro)
 
+> **Requires Kargo deployed (wave 4) and vClusters running.** If those are not yet set up, this runbook is for reference only.
+
 Kargo manages the promotion pipeline between vClusters. A new image tag in dev flows to pre after tests pass, and to pro after manual approval.
 
 ## How it works

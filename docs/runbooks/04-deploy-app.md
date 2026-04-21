@@ -1,6 +1,6 @@
 # Runbook: Deploy an App with the Umbrella Chart
 
-Apps deploy inside vClusters (dev / pre / pro) using the umbrella chart at `charts/app-umbrella/`.
+Apps deploy inside vClusters (dev / pre / pro) using the umbrella chart at `charts/cloudframe-apps/`.
 
 ## Prerequisites
 
@@ -80,7 +80,7 @@ export KUBECONFIG=/tmp/vcluster-dev.kubeconfig
 ## Step 4 — Install the chart
 
 ```bash
-helm install my-app charts/app-umbrella/ \
+helm install my-app charts/cloudframe-apps/ \
   -f my-app-values.yaml \
   --create-namespace \
   --namespace my-app \
