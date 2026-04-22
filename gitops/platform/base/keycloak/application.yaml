@@ -37,7 +37,7 @@ spec:
         postgres:
           enabled: false
         service:
-          type: LoadBalancer
+          type: ClusterIP
   destination:
     server: https://kubernetes.default.svc
     namespace: keycloak
