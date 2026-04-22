@@ -15,7 +15,7 @@ spec:
     targetRevision: 0.20.5
     helm:
       values: |
-        replicaCount: 2
+        replicaCount: 1
         keycloak:
           adminUser: admin
           existingSecret: keycloak-admin-secret
@@ -24,8 +24,8 @@ spec:
           httpEnabled: true
           httpPort: 8080
           hostname: "keycloak-dev.local.lp"
-          hostnameStrict: false
-          proxyHeaders: forwarded
+          hostnameStrict: true
+          proxyHeaders: xforwarded
           production: true
         database:
           type: postgres
