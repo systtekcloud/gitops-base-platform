@@ -12,7 +12,8 @@ components find everything they need already in place.
 
 ## What keycloak prerequisites deploy (wave 3)
 
-ArgoCD Application `keycloak-secrets` deploys two files:
+ArgoCD Application `keycloak-secrets` deploys the VSO resources for the Keycloak
+stack:
 
 ### keycloak-secrets.yaml — VSO sync resources
 
@@ -24,7 +25,7 @@ VaultAuth "keycloak-vault-auth"
 VaultStaticSecret "keycloak-db-secret-sync"
 └── VSO reads secret/dev/keycloak from Vault
     → creates K8s Secret "keycloak-db-secret"
-       keys: password, postgres-password
+       keys: password, postgres-password, username
 
 VaultStaticSecret "keycloak-admin-secret-sync"
 └── VSO reads secret/dev/keycloak from Vault
@@ -32,7 +33,14 @@ VaultStaticSecret "keycloak-admin-secret-sync"
        key: admin-password
 ```
 
-### postgres.yaml — Keycloak database
+The `username` key is rendered as a fixed Kubernetes secret value (`keycloak`).
+It does not need to be seeded in Vault unless you later decide to make the
+database username configurable through Vault as well.
+
+## Keycloak database app (wave 4)
+
+ArgoCD Application `keycloak-postgres` deploys the database workload from
+`gitops/platform/components/keycloak-postgres`:
 
 ```
 StatefulSet "keycloak-postgresql" (postgres:17-alpine)
@@ -41,9 +49,12 @@ StatefulSet "keycloak-postgresql" (postgres:17-alpine)
 Service "keycloak-postgresql" → port 5432
 ```
 
-PostgreSQL lives here (wave 3) instead of with Keycloak (wave 4) because it needs
-`keycloak-db-secret` to exist before it can start. By deploying it in the same wave
-as the secret sync, both are ready when Keycloak arrives in wave 4.
+PostgreSQL is a separate Application from the secret sync so that responsibilities
+stay clear:
+- `prerequisites/` contains only VSO resources and other pre-start dependencies.
+- `base/` contains ArgoCD Applications.
+- workload manifests live outside `base/` so the root app-of-apps does not apply
+  them directly.
 
 ## Dependency chain
 
@@ -51,9 +62,10 @@ as the secret sync, both are ready when Keycloak arrives in wave 4.
 [Pre-ArgoCD]  vault kv put secret/dev/keycloak db_password=X admin_password=Y
                     │
 [Wave 3]      VaultStaticSecret syncs → creates keycloak-db-secret, keycloak-admin-secret
-              PostgreSQL StatefulSet starts → reads keycloak-db-secret ✓
                     │
-[Wave 4]      Keycloak starts → reads keycloak-db-secret + keycloak-admin-secret ✓
+[Wave 4]      PostgreSQL StatefulSet starts → reads keycloak-db-secret ✓
+                    │
+[Wave 5]      Keycloak starts → reads keycloak-db-secret + keycloak-admin-secret ✓
                                 connects to keycloak-postgresql:5432 ✓
 ```
 
@@ -103,7 +115,8 @@ To add a similar pattern for a new component (e.g. `my-service`):
    pointing at `gitops/platform/prerequisites/my-service` with `sync-wave: "3"`
 3. Create a `VaultConnection` in the component's namespace (manual step, see [02-vault-bootstrap.md](02-vault-bootstrap.md))
 4. Seed the secret in Vault before ArgoCD wave 3 runs (see [03-vault-seed.md](03-vault-seed.md))
-5. The component's main Application at `sync-wave: "4"` can then use `existingSecret` references
+5. Add any dependent infrastructure workload as its own Application in a later wave
+6. The component's main Application in a later wave can then use `existingSecret` references
 
 ## Vault secret path convention
 

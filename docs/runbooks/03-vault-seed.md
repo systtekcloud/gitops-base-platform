@@ -41,6 +41,9 @@ kubectl exec -it vault-0 -n vault -- \
     admin_password=<choose-a-password>
 ```
 
+`db_username` is not required in Vault with the current manifests. The VSO
+transformation renders the Kubernetes secret key `username=keycloak` directly.
+
 ### Verify the write
 
 ```bash

@@ -89,11 +89,13 @@ ArgoCD syncs components in waves. Expected order:
 
 ```
 Wave 1: kyverno, mongodb-operator, crossplane       (~3 min)
-Wave 3: keycloak-secrets (VSO sync + PostgreSQL)    (~2 min)
-Wave 4: keycloak, grafana, kargo                    (~5 min)
+Wave 3: keycloak-secrets (VSO sync)                 (~2 min)
+Wave 4: keycloak-postgres, kargo                    (~2 min)
+Wave 5: keycloak                                    (~3 min)
+Wave 6: grafana                                     (~2 min)
 ```
 
-> Wave 3 (keycloak-secrets) requires Vault and VSO to be running. If it stays
+> Wave 3 (`keycloak-secrets`) requires Vault and VSO to be running. If it stays
 > OutOfSync, check that Vault is reachable and VSO is installed.
 
 ### Step 6 — Verify
@@ -127,12 +129,13 @@ ArgoCD reads gitops/platform/base/ and gitops/platform/overlays/kind/
     ├── crossplane-operator/application.yaml  → creates Application "crossplane"
     ├── kyverno/application.yaml              → creates Application "kyverno"
     ├── keycloak-secrets/application.yaml     → creates Application "keycloak-secrets"
+    ├── keycloak-postgres/application.yaml    → creates Application "keycloak-postgres"
     ├── keycloak/application.yaml             → creates Application "keycloak"
     └── ...
 ```
 
 Each child Application then installs its Helm chart or applies its manifests.
-Sync waves control the order: wave 1 runs first, wave 4 runs last.
+Sync waves control the order: wave 1 runs first, wave 6 runs last.
 
 ## Runbooks
 

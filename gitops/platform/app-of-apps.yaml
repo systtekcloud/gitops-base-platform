@@ -13,9 +13,10 @@
 #   Wave 1: kyverno, mongodb-operator, crossplane    ← operators
 #   Wave 3: keycloak-secrets                         ← VaultStaticSecret+VaultAuth (requiere VSO)
 #           prometheus-stack
-#   Wave 4: keycloak                                 ← requiere secrets de Wave 3
-#           grafana                                  ← requiere keycloak + prometheus
+#   Wave 4: keycloak-postgres                        ← requiere keycloak-db-secret de Wave 3
 #           kargo
+#   Wave 5: keycloak                                 ← requiere secrets + postgres
+#   Wave 6: grafana                                  ← requiere keycloak + prometheus
 # =============================================================================
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject

@@ -80,12 +80,14 @@ Wave 1  Crossplane · Kyverno · MongoDB operator
         └── No inter-dependencies. All sync in parallel.
 
 Wave 3  keycloak-secrets  ← VaultStaticSecret sync (requires VSO + Vault ready)
-        PostgreSQL        ← keycloak DB (requires keycloak-db-secret from wave 3 sync)
         Prometheus Stack  ← no Vault dependency
 
-Wave 4  Keycloak   (← keycloak-db-secret + keycloak-admin-secret must exist)
-        Grafana    (← Keycloak + Prometheus must be ready)
-        Kargo      (← ArgoCD must be fully operational)
+Wave 4  PostgreSQL ← keycloak DB (requires keycloak-db-secret from wave 3 sync)
+        Kargo      ← ArgoCD must be fully operational
+
+Wave 5  Keycloak   ← keycloak-db-secret + keycloak-admin-secret + PostgreSQL must exist
+
+Wave 6  Grafana    ← Keycloak + Prometheus must be ready
 ```
 
 ## Secret Flow
