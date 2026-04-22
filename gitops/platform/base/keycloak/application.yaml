@@ -24,7 +24,7 @@ spec:
           httpEnabled: true
           httpPort: 8080
           hostname: "keycloak-dev.local.lp"
-          hostnameStrict: true
+          hostnameStrict: false
           proxyHeaders: xforwarded
           production: true
         database:
