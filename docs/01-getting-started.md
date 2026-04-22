@@ -147,6 +147,11 @@ Sync waves control the order: wave 1 runs first, wave 6 runs last.
 | 4 | [06-keycloak-prerequisites.md](runbooks/06-keycloak-prerequisites.md) | Understand the prerequisites pattern |
 | 5 | [04-deploy-app.md](runbooks/04-deploy-app.md) | Deploy a new application |
 | 6 | [05-promote-app.md](runbooks/05-promote-app.md) | Promote app between environments |
+| 7 | [07-cert-manager-local-ca.md](runbooks/07-cert-manager-local-ca.md) | Prepare local TLS issuance with cert-manager |
+| 8 | [08-keycloak-https-apisix.md](runbooks/08-keycloak-https-apisix.md) | Expose Keycloak over HTTPS through APISIX |
+| 9 | [09-grafana-https-apisix.md](runbooks/09-grafana-https-apisix.md) | Expose Grafana over HTTPS through APISIX |
+| 10 | [10-argocd-https-apisix.md](runbooks/10-argocd-https-apisix.md) | Expose ArgoCD over HTTPS through APISIX |
+| 11 | [11-platform-entrypoints-gitops-transition.md](runbooks/11-platform-entrypoints-gitops-transition.md) | Prepare the transition from manual entrypoints to GitOps |
 
 ## Troubleshooting
 
