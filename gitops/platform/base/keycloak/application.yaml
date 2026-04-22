@@ -22,7 +22,6 @@ spec:
           secretKeys:
             adminPasswordKey: admin-password
           httpEnabled: true
-          httpsEnabled: true
           httpPort: 8080
           hostname: "keycloak-dev.local.lp"
           hostnameStrict: true
