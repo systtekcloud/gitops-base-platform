@@ -13,6 +13,8 @@ that a test certificate becomes a Kubernetes TLS Secret.
 - A working local cluster
 - `kubectl` configured for that cluster
 - APISIX already installed if you plan to continue to the HTTPS labs
+- If you plan to continue to the HTTPS labs, APISIX must expose HTTPS on the
+  gateway service, not only HTTP
 
 ## Step 1 — Install cert-manager
 

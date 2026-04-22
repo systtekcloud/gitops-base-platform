@@ -51,6 +51,7 @@ metadata:
   name: grafana-dev-local-lp
   namespace: monitoring
 spec:
+  ingressClassName: apisix
   hosts:
     - grafana-dev.local.lp
   secret:
@@ -81,7 +82,8 @@ EOF
 
 ```bash
 kubectl get certificate,secret,apisixtls,apisixroute -n monitoring
-curl -k -i -H 'Host: grafana-dev.local.lp' https://<apisix-address>/
+curl -k -i --resolve grafana-dev.local.lp:443:<apisix-address> \
+  https://grafana-dev.local.lp/
 ```
 
 Expected:

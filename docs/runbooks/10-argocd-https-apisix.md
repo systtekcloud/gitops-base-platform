@@ -48,6 +48,7 @@ metadata:
   name: argocd-dev-local-lp
   namespace: argo
 spec:
+  ingressClassName: apisix
   hosts:
     - argocd-dev.local.lp
   secret:
@@ -78,7 +79,8 @@ EOF
 
 ```bash
 kubectl get certificate,secret,apisixtls,apisixroute -n argo
-curl -k -i -H 'Host: argocd-dev.local.lp' https://<apisix-address>/
+curl -k -i --resolve argocd-dev.local.lp:443:<apisix-address> \
+  https://argocd-dev.local.lp/
 ```
 
 If redirects or login flow break, re-check ArgoCD external URL assumptions before
