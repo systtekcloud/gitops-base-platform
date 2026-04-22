@@ -25,7 +25,7 @@ spec:
           httpPort: 8080
           hostname: "keycloak-dev.local.lp"
           hostnameStrict: false
-          proxyHeaders: xforwarded
+          proxyHeaders: forwarded
           production: true
         database:
           type: postgres
