@@ -86,7 +86,7 @@ kubectl apply -f - <<'EOF'
 apiVersion: apisix.apache.org/v2
 kind: ApisixRoute
 metadata:
-  name: keycloak
+  name: keycloak-route
   namespace: keycloak
 spec:
   ingressClassName: apisix

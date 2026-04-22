@@ -73,10 +73,15 @@ spec:
 EOF
 ```
 
-## Step 4 — Request a test certificate
+## Step 4 — Create the test namespace
 
 ```bash
 kubectl create namespace tls-lab --dry-run=client -o yaml | kubectl apply -f -
+```
+
+## Step 5 — Request a test certificate
+
+```bash
 
 kubectl apply -f - <<'EOF'
 apiVersion: cert-manager.io/v1
@@ -94,7 +99,7 @@ spec:
 EOF
 ```
 
-## Step 5 — Verify readiness
+## Step 6 — Verify readiness
 
 ```bash
 kubectl get clusterissuer
@@ -108,7 +113,7 @@ Expected:
 - `Certificate/keycloak-dev-local-lp-cert` is Ready
 - secret `keycloak-dev-local-lp-tls` exists
 
-## Step 6 — Trust the local CA
+## Step 7 — Trust the local CA
 
 Export the CA certificate:
 
