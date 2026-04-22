@@ -1,0 +1,18 @@
+# Manual APISIX route for Keycloak.
+# This file is intentionally outside the ArgoCD-managed platform base path.
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: keycloak
+  namespace: keycloak
+spec:
+  http:
+    - name: keycloak
+      match:
+        hosts:
+          - keycloak-dev.local
+        paths:
+          - /*
+      backends:
+        - serviceName: keycloak
+          servicePort: 8080

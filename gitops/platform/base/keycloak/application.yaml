@@ -36,14 +36,8 @@ spec:
             usernameKey: username
         postgres:
           enabled: false
-        ingress:
-          enabled: true
-          className: apisix
-          hosts: 
-            - host: keycloak-dev.local
-              paths:
-                - path: /
-                  pathType: Prefix
+        service:
+          type: ClusterIP
   destination:
     server: https://kubernetes.default.svc
     namespace: keycloak
