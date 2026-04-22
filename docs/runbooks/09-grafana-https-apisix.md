@@ -61,7 +61,7 @@ spec:
 apiVersion: apisix.apache.org/v2
 kind: ApisixRoute
 metadata:
-  name: grafana
+  name: grafana-route
   namespace: monitoring
 spec:
   ingressClassName: apisix
