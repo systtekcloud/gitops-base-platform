@@ -3,9 +3,10 @@
 apiVersion: apisix.apache.org/v2
 kind: ApisixRoute
 metadata:
-  name: keycloak
+  name: keycloak-route
   namespace: keycloak
 spec:
+  ingressClassName: apisix
   http:
     - name: keycloak
       match:
