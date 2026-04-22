@@ -24,6 +24,7 @@ spec:
           httpsEnabled: true
           httpPort: 8080
           hostname: "keycloak-dev.local.lp"
+          hostnameStrict: true
           proxyHeaders: xforwarded
           production: true
         database:
@@ -44,6 +45,19 @@ spec:
           enabled: true
           size: 5Gi
           storageClass: "standard"
+        extraEnvVars:
+          - name: KC_SPI_THEME_CACHE_THEMES
+            value: "false"
+          - name: KC_SPI_THEME_STATIC_MAX_AGE
+            value: "-1"
+          - name: KC_LOG_CONSOLE_OUTPUT
+            value: "json"
+          - name: KC_LOG_CONSOLE_JSON_FORMAT
+            value: "ecs"
+          - name: KC_LOG_LEVEL
+            value: "INFO,org.keycloak.events:DEBUG"
+        metrics:
+          enabled: true
   destination:
     server: https://kubernetes.default.svc
     namespace: keycloak
