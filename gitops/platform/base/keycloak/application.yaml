@@ -46,6 +46,8 @@ spec:
           size: 5Gi
           storageClass: "standard"
         extraEnvVars:
+          - name: KC_HOSTNAME_DEBUG
+            value: "true"
           - name: KC_SPI_THEME_CACHE_THEMES
             value: "false"
           - name: KC_SPI_THEME_STATIC_MAX_AGE
