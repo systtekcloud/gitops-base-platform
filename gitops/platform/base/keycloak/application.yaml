@@ -21,6 +21,7 @@ spec:
           secretKeys:
             adminPasswordKey: admin-password
           httpEnabled: true
+          httpPort: 8080
           hostname: "keycloak-dev.local"
           proxyHeaders: forwarded
           production: true
