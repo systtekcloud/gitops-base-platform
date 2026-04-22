@@ -21,6 +21,8 @@ spec:
           secretKeys:
             adminPasswordKey: admin-password
           httpEnabled: true
+          hostname: "keycloak-dev.local"
+          proxyHeaders: forwarded
           production: true
         database:
           type: postgres
@@ -34,8 +36,14 @@ spec:
             usernameKey: username
         postgres:
           enabled: false
-        service:
-          type: ClusterIP
+        ingress:
+          enabled: true
+          className: apisix
+          hosts: 
+            - host: keycloak-dev.local
+              paths:
+                - path: /
+                  pathType: Prefix
   destination:
     server: https://kubernetes.default.svc
     namespace: keycloak
