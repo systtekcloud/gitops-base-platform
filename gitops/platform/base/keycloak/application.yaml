@@ -23,7 +23,7 @@ spec:
             adminPasswordKey: admin-password
           httpEnabled: true
           httpPort: 8080
-          hostname: "keycloak-dev.local.lp"
+          hostname: "https://keycloak-dev.local.lp"
           hostnameStrict: true
           proxyHeaders: xforwarded
           production: true
