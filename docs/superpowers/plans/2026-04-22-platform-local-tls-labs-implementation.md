@@ -392,7 +392,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: grafana-dev-local-lp-cert
-  namespace: monitoring
+  namespace: observability
 spec:
   secretName: grafana-dev-local-lp-tls
   dnsNames:
@@ -411,19 +411,19 @@ apiVersion: apisix.apache.org/v2
 kind: ApisixTls
 metadata:
   name: grafana-dev-local-lp
-  namespace: monitoring
+  namespace: observability
 spec:
   hosts:
     - grafana-dev.local.lp
   secret:
     name: grafana-dev-local-lp-tls
-    namespace: monitoring
+    namespace: observability
 ---
 apiVersion: apisix.apache.org/v2
 kind: ApisixRoute
 metadata:
   name: grafana
-  namespace: monitoring
+  namespace: observability
 spec:
   ingressClassName: apisix
   http:
@@ -442,7 +442,7 @@ EOF
 ## Step 4 — Verify
 
 ```bash
-kubectl get certificate,secret,apisixtls,apisixroute -n monitoring
+kubectl get certificate,secret,apisixtls,apisixroute -n observability
 curl -k -i -H 'Host: grafana-dev.local.lp' https://<apisix-address>/
 ```
 ```

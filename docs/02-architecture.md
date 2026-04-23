@@ -52,7 +52,8 @@
 │  │  │  │                                                  │ │ │ │
 │  │  │  │  [external] vault · vault-secrets-operator       │ │ │ │
 │  │  │  │  [external] apisix                               │ │ │ │
-│  │  │  │  monitoring     · grafana                        │ │ │ │
+│  │  │  │  monitoring     · prometheus-stack                │ │ │ │
+│  │  │  │  observability  · grafana                         │ │ │ │
 │  │  │  │  keycloak       · crossplane-system              │ │ │ │
 │  │  │  │  mongodb-operator · kyverno                      │ │ │ │
 │  │  │  └─────────────────────────────────────────────────┘ │ │ │
@@ -80,6 +81,7 @@ Wave 1  Crossplane · Kyverno · MongoDB operator
         └── No inter-dependencies. All sync in parallel.
 
 Wave 3  keycloak-secrets  ← VaultStaticSecret sync (requires VSO + Vault ready)
+        grafana-secrets   ← VaultStaticSecret sync (requires VSO + Vault ready)
         Prometheus Stack  ← no Vault dependency
 
 Wave 4  PostgreSQL ← keycloak DB (requires keycloak-db-secret from wave 3 sync)

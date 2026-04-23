@@ -89,14 +89,15 @@ ArgoCD syncs components in waves. Expected order:
 
 ```
 Wave 1: kyverno, mongodb-operator, crossplane       (~3 min)
-Wave 3: keycloak-secrets (VSO sync)                 (~2 min)
+Wave 3: keycloak-secrets, grafana-secrets (VSO sync) (~2 min)
 Wave 4: keycloak-postgres, kargo                    (~2 min)
 Wave 5: keycloak                                    (~3 min)
 Wave 6: grafana                                     (~2 min)
 ```
 
-> Wave 3 (`keycloak-secrets`) requires Vault and VSO to be running. If it stays
-> OutOfSync, check that Vault is reachable and VSO is installed.
+> Wave 3 (`keycloak-secrets`, `grafana-secrets`) requires Vault and VSO to be
+> running. If it stays OutOfSync, check that Vault is reachable and VSO is
+> installed.
 
 ### Step 6 — Verify
 
@@ -129,6 +130,7 @@ ArgoCD reads gitops/platform/base/ and gitops/platform/overlays/kind/
     ├── crossplane-operator/application.yaml  → creates Application "crossplane"
     ├── kyverno/application.yaml              → creates Application "kyverno"
     ├── keycloak-secrets/application.yaml     → creates Application "keycloak-secrets"
+    ├── grafana-secrets/application.yaml      → creates Application "grafana-secrets"
     ├── keycloak-postgres/application.yaml    → creates Application "keycloak-postgres"
     ├── keycloak/application.yaml             → creates Application "keycloak"
     └── ...
@@ -159,6 +161,7 @@ Sync waves control the order: wave 1 runs first, wave 6 runs last.
 |---|---|---|
 | Applications not appearing after step 3 | `kubectl describe application argo-apps-kind -n argo` | Repo not reachable or wrong repoURL |
 | App stuck `OutOfSync` | `kubectl describe application <name> -n argo` | YAML error or missing CRD |
-| keycloak-secrets `OutOfSync` | `kubectl get vaultconnection -n keycloak` | VaultConnection missing or Vault unreachable |
+| keycloak-secrets `OutOfSync` | `kubectl get vaultconnection default -n vault-secrets-operator` | Default VaultConnection missing or Vault unreachable |
+| grafana-secrets `OutOfSync` | `kubectl get vaultconnection default -n vault-secrets-operator` | Default VaultConnection missing or Vault unreachable |
 | Keycloak crashloop | `kubectl logs -n keycloak deploy/keycloak` | keycloak-db-secret not synced yet — check VSO |
 | vCluster pods `Pending` (EKS) | `kubectl get nodeclaim -A` | Karpenter provisioning nodes, wait 60s |

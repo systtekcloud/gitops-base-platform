@@ -23,19 +23,29 @@ spec:
                 type: prometheus
                 url: http://prometheus-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090
                 isDefault: true
+        admin:
+          existingSecret: grafana-admin-secret
+          userKey: admin-user
+          passwordKey: admin-password
+        envValueFrom:
+          GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+            secretKeyRef:
+              name: grafana-admin-secret
+              key: oauth-client-secret
         grafana.ini:
           server:
             root_url: "https://grafana-dev.local.lp"
+          auth:
+            disable_login_form: false
           auth.generic_oauth:
             enabled: true
             name: Keycloak
             allow_sign_up: true
             client_id: grafana
-            client_secret: ""       # Populate via VSO
             scopes: openid email profile
-            auth_url: "http://keycloak.keycloak.svc.cluster.local/realms/platform/protocol/openid-connect/auth"
-            token_url: "http://keycloak.keycloak.svc.cluster.local/realms/platform/protocol/openid-connect/token"
-            api_url: "http://keycloak.keycloak.svc.cluster.local/realms/platform/protocol/openid-connect/userinfo"
+            auth_url: "https://keycloak-dev.local.lp/realms/cloudframe/protocol/openid-connect/auth"
+            token_url: "https://keycloak-dev.local.lp/realms/cloudframe/protocol/openid-connect/token"
+            api_url: "https://keycloak-dev.local.lp/realms/cloudframe/protocol/openid-connect/userinfo"
         service:
           type: ClusterIP
         sidecar:
@@ -46,7 +56,7 @@ spec:
             enabled: true
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring
+    namespace: observability
   syncPolicy:
     automated:
       prune: true

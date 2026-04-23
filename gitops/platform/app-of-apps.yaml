@@ -12,6 +12,7 @@
 # SYNC-WAVE ORDER (solo lo que gestiona ArgoCD):
 #   Wave 1: kyverno, mongodb-operator, crossplane    ← operators
 #   Wave 3: keycloak-secrets                         ← VaultStaticSecret+VaultAuth (requiere VSO)
+#           grafana-secrets                          ← VaultStaticSecret+VaultAuth (requiere VSO)
 #           prometheus-stack
 #   Wave 4: keycloak-postgres                        ← requiere keycloak-db-secret de Wave 3
 #           kargo

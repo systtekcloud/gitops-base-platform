@@ -79,38 +79,55 @@ kubectl exec -it vault-0 -n vault -- \
 
 Repeat for each component that needs Vault access.
 
-## Step 4 — Create a VaultConnection in each namespace
-
-VSO needs a `VaultConnection` object in the same namespace as the `VaultAuth` to
-know where Vault is. Create one in the `keycloak` namespace:
+For Grafana:
 
 ```bash
-kubectl apply -f - <<'EOF'
-apiVersion: secrets.hashicorp.com/v1beta1
-kind: VaultConnection
-metadata:
-  name: vault-connection
-  namespace: keycloak
-spec:
-  address: http://vault.vault.svc.cluster.local:8200
-  skipTLSVerify: true
+cat <<'EOF' >/tmp/grafana-policy.hcl
+path "secret/data/dev/grafana" {
+  capabilities = ["read"]
+}
 EOF
+
+kubectl cp /tmp/grafana-policy.hcl vault/vault-0:/tmp/grafana-policy.hcl
+
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault policy write grafana /tmp/grafana-policy.hcl
+
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault write auth/kubernetes/role/grafana \
+    bound_service_account_names=default \
+    bound_service_account_namespaces=observability \
+    policies=grafana \
+    ttl=24h
 ```
 
-Verify VSO picked it up:
+## Step 4 — Verify the default VaultConnection
+
+VSO creates or uses a default `VaultConnection` in the operator namespace. The
+platform `VaultAuth` resources do not set `vaultConnectionRef`, so VSO resolves
+that central default connection automatically.
+
+Verify it exists:
 
 ```bash
-kubectl get vaultconnection -n keycloak
+kubectl get vaultconnection default -n vault-secrets-operator
 ```
+
+Only create per-namespace `VaultConnection` resources if you need multiple Vault
+endpoints or different connection settings.
 
 ## Step 5 — Verify VSO can authenticate
 
-After seeding secrets (runbook 03) and after ArgoCD applies `keycloak-secrets`,
-VSO should create the K8s Secrets automatically:
+After seeding secrets (runbook 03) and after ArgoCD applies the prerequisites
+apps, VSO should create the K8s Secrets automatically:
 
 ```bash
+kubectl get vaultconnection default -n vault-secrets-operator
 kubectl get secret keycloak-db-secret -n keycloak
 kubectl get secret keycloak-admin-secret -n keycloak
+kubectl get secret grafana-admin-secret -n observability
 ```
 
 ## EKS: push init material to AWS Secrets Manager

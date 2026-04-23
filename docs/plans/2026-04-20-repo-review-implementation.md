@@ -387,7 +387,7 @@ Sync waves control the order: wave 1 runs first, wave 4 runs last.
 |---|---|---|
 | Applications not appearing after step 3 | `kubectl describe application argo-apps-kind -n argo` | Repo not reachable or wrong repoURL |
 | App stuck `OutOfSync` | `kubectl describe application <name> -n argo` | YAML error or missing CRD |
-| keycloak-secrets `OutOfSync` | `kubectl get vaultconnection -n keycloak` | VaultConnection missing or Vault unreachable |
+| keycloak-secrets `OutOfSync` | `kubectl get vaultconnection default -n vault-secrets-operator` | Default VaultConnection missing or Vault unreachable |
 | Keycloak crashloop | `kubectl logs -n keycloak deploy/keycloak` | keycloak-db-secret not synced yet — check VSO |
 | vCluster pods `Pending` (EKS) | `kubectl get nodeclaim -A` | Karpenter provisioning nodes, wait 60s |
 ```
@@ -452,7 +452,8 @@ Wave 4  Keycloak   (← keycloak-db-secret + keycloak-admin-secret must exist)
 Replace the platform namespaces box content from:
 ```
 │  vault          · vault-secrets-operator         │
-│  monitoring     · grafana                        │
+│  monitoring     · prometheus-stack               │
+│  observability  · grafana                        │
 │  keycloak       · apisix                         │
 │  velero         · crossplane-system              │
 │  cnpg-system    · mongodb-operator               │
@@ -463,7 +464,8 @@ To:
 ```
 │  [external] vault · vault-secrets-operator       │
 │  [external] apisix                               │
-│  monitoring     · grafana                        │
+│  monitoring     · prometheus-stack               │
+│  observability  · grafana                        │
 │  keycloak       · crossplane-system              │
 │  mongodb-operator · kyverno                      │
 ```
@@ -584,28 +586,14 @@ kubectl exec -it vault-0 -n vault -- \
 
 Repeat for each component that needs Vault access.
 
-## Step 4 — Create a VaultConnection in each namespace
+## Step 4 — Verify the default VaultConnection
 
-VSO needs a `VaultConnection` object in the same namespace as the `VaultAuth` to
-know where Vault is. Create one in the `keycloak` namespace:
-
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: secrets.hashicorp.com/v1beta1
-kind: VaultConnection
-metadata:
-  name: vault-connection
-  namespace: keycloak
-spec:
-  address: http://vault.vault.svc.cluster.local:8200
-  skipTLSVerify: true
-EOF
-```
-
-Verify VSO picked it up:
+VSO needs a `VaultConnection` to know where Vault is. For platform components,
+`VaultAuth` does not set `vaultConnectionRef`, so VSO uses
+`VaultConnection/default` from the operator namespace.
 
 ```bash
-kubectl get vaultconnection -n keycloak
+kubectl get vaultconnection default -n vault-secrets-operator
 ```
 
 ## Step 5 — Verify VSO can authenticate
@@ -816,31 +804,20 @@ as the secret sync, both are ready when Keycloak arrives in wave 4.
                                 connects to keycloak-postgresql:5432 ✓
 ```
 
-## Required: VaultConnection in the namespace
+## VaultConnection is shared by VSO
 
-`VaultAuth` needs a `VaultConnection` in the same namespace to know where Vault is.
-This is a manual step done during VSO configuration (see [02-vault-bootstrap.md](02-vault-bootstrap.md)):
+`VaultAuth` needs a `VaultConnection` to know where Vault is. With the current
+VSO install, platform `VaultAuth` resources do not set `vaultConnectionRef`, so
+VSO uses `VaultConnection/default` from the operator namespace.
 
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: secrets.hashicorp.com/v1beta1
-kind: VaultConnection
-metadata:
-  name: vault-connection
-  namespace: keycloak
-spec:
-  address: http://vault.vault.svc.cluster.local:8200
-  skipTLSVerify: true
-EOF
-```
-
-Without this, VSO cannot resolve the `VaultAuth` and secrets will not sync.
+Do not create per-namespace `VaultConnection` resources unless you need multiple
+Vault endpoints or different connection settings.
 
 ## Diagnosing VSO sync issues
 
 ```bash
-# Check VaultConnection exists
-kubectl get vaultconnection -n keycloak
+# Check the shared VaultConnection exists
+kubectl get vaultconnection default -n vault-secrets-operator
 
 # Check VaultAuth status
 kubectl describe vaultauth keycloak-vault-auth -n keycloak
@@ -860,7 +837,7 @@ To add a similar pattern for a new component (e.g. `my-service`):
 1. Create `gitops/platform/prerequisites/my-service/` with your VSO resources
 2. Add an ArgoCD Application in `gitops/platform/base/my-service-secrets/application.yaml`
    pointing at `gitops/platform/prerequisites/my-service` with `sync-wave: "3"`
-3. Create a `VaultConnection` in the component's namespace (manual step, see [02-vault-bootstrap.md](02-vault-bootstrap.md))
+3. Include a `VaultConnection` in the component's prerequisites manifests
 4. Seed the secret in Vault before ArgoCD wave 3 runs (see [03-vault-seed.md](03-vault-seed.md))
 5. The component's main Application at `sync-wave: "4"` can then use `existingSecret` references
 

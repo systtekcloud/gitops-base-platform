@@ -93,7 +93,7 @@ Equivalent naming applies to Grafana and ArgoCD.
 Namespace placement:
 
 - Keycloak resources in namespace `keycloak`
-- Grafana resources in namespace `monitoring`
+- Grafana resources in namespace `observability`
 - ArgoCD resources in namespace `argo`
 
 `ApisixTls` resources live in the same namespace as the backend service they expose so each lab remains self-contained and easy to reason about.

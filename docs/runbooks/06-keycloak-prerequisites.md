@@ -21,6 +21,7 @@ stack:
 VaultAuth "keycloak-vault-auth"
 └── Tells VSO: authenticate to Vault using kubernetes auth
     role=keycloak, serviceAccount=default
+    uses VaultConnection/default from the VSO namespace
 
 VaultStaticSecret "keycloak-db-secret-sync"
 └── VSO reads secret/dev/keycloak from Vault
@@ -69,31 +70,20 @@ stay clear:
                                 connects to keycloak-postgresql:5432 ✓
 ```
 
-## Required: VaultConnection in the namespace
+## VaultConnection is shared by VSO
 
-`VaultAuth` needs a `VaultConnection` in the same namespace to know where Vault is.
-This is a manual step done during VSO configuration (see [02-vault-bootstrap.md](02-vault-bootstrap.md)):
+`VaultAuth` needs a `VaultConnection` to know where Vault is. With the current
+VSO install, platform `VaultAuth` resources do not set `vaultConnectionRef`, so
+VSO uses `VaultConnection/default` from the operator namespace.
 
-```bash
-kubectl apply -f - <<'EOF'
-apiVersion: secrets.hashicorp.com/v1beta1
-kind: VaultConnection
-metadata:
-  name: vault-connection
-  namespace: keycloak
-spec:
-  address: http://vault.vault.svc.cluster.local:8200
-  skipTLSVerify: true
-EOF
-```
-
-Without this, VSO cannot resolve the `VaultAuth` and secrets will not sync.
+Do not create per-namespace `VaultConnection` resources unless you need multiple
+Vault endpoints or different connection settings.
 
 ## Diagnosing VSO sync issues
 
 ```bash
-# Check VaultConnection exists
-kubectl get vaultconnection -n keycloak
+# Check the shared VaultConnection exists
+kubectl get vaultconnection default -n vault-secrets-operator
 
 # Check VaultAuth status
 kubectl describe vaultauth keycloak-vault-auth -n keycloak
@@ -113,7 +103,7 @@ To add a similar pattern for a new component (e.g. `my-service`):
 1. Create `gitops/platform/prerequisites/my-service/` with your VSO resources
 2. Add an ArgoCD Application in `gitops/platform/base/my-service-secrets/application.yaml`
    pointing at `gitops/platform/prerequisites/my-service` with `sync-wave: "3"`
-3. Create a `VaultConnection` in the component's namespace (manual step, see [02-vault-bootstrap.md](02-vault-bootstrap.md))
+3. Add `VaultAuth` and `VaultStaticSecret` manifests for the component
 4. Seed the secret in Vault before ArgoCD wave 3 runs (see [03-vault-seed.md](03-vault-seed.md))
 5. Add any dependent infrastructure workload as its own Application in a later wave
 6. The component's main Application in a later wave can then use `existingSecret` references

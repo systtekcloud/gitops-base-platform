@@ -4,7 +4,8 @@ Use this after Vault is initialized and unsealed. See [02-vault-bootstrap.md](02
 
 ## When to run this
 
-After Vault is initialized and unsealed, before ArgoCD wave 3 (keycloak-secrets) syncs.
+After Vault is initialized and unsealed, before ArgoCD wave 3
+(`keycloak-secrets` and `grafana-secrets`) syncs.
 
 ## Export the Vault root token
 
@@ -44,12 +45,34 @@ kubectl exec -it vault-0 -n vault -- \
 `db_username` is not required in Vault with the current manifests. The VSO
 transformation renders the Kubernetes secret key `username=keycloak` directly.
 
+### Grafana secrets
+
+Used by VSO to create `grafana-admin-secret` in the `observability` namespace.
+
+```bash
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault kv put secret/dev/grafana \
+    admin_password=<choose-a-password> \
+    oauth_client_secret=<grafana-keycloak-client-secret>
+```
+
+`admin_user` is not required in Vault with the current manifests. The VSO
+transformation renders the Kubernetes secret key `admin-user=admin` directly.
+The Keycloak OAuth client secret is injected into Grafana as
+`GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET`, not rendered in `grafana.ini`, because the
+Grafana Helm chart rejects sensitive keys in values.
+
 ### Verify the write
 
 ```bash
 kubectl exec -it vault-0 -n vault -- \
   env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
   vault kv get secret/dev/keycloak
+
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault kv get secret/dev/grafana
 ```
 
 ## App secrets before app deployment
