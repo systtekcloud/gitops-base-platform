@@ -58,7 +58,7 @@ spec:
 apiVersion: apisix.apache.org/v2
 kind: ApisixRoute
 metadata:
-  name: argocd
+  name: argocd-route
   namespace: argo
 spec:
   ingressClassName: apisix
