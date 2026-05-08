@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cloudframe-platform
+  namespace: argo
+spec:
+  description: Platform components managed by ArgoCD
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+    - namespace: '*'
+      server: https://vcluster-dev.vcluster-dev.svc.cluster.local:443
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
