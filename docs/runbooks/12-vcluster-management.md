@@ -6,6 +6,81 @@ A vCluster is a virtual Kubernetes cluster that runs as a StatefulSet inside a h
 namespace. It has its own API server, control plane, and namespaces. Pods scheduled
 inside the vCluster actually run on the host cluster nodes.
 
+## Phase Roadmap
+
+The platform deploys vClusters in three phases. Each phase builds on the previous.
+
+### Phase 1 — Shared platform, kind only ✅ (current)
+
+**What:** One vCluster (`vcluster-dev`) on the kind cluster. All platform services
+(Vault, Keycloak, Grafana, Prometheus, APISIX) run on the host cluster and are shared.
+
+**Secret model:** VSO on the host creates K8s Secrets from Vault. The vCluster copies
+specific named Secrets into its virtual namespaces via `fromHost.secrets.mappings.byName`.
+Apps inside the vCluster consume native K8s Secrets — no Vault SDK needed.
+
+**ArgoCD cluster registration:** Manual. Extract the `argocd-manager` token from inside
+the vCluster, create a cluster Secret directly in the `argo` namespace.
+`argocd cluster add` cannot be used because ArgoCD runs in-cluster and the CLI
+produces a kubeconfig with a localhost URL that ArgoCD's pod cannot reach (see
+[Why `argocd cluster add` fails in-cluster](#why-argocd-cluster-add-fails-in-cluster)).
+
+**Tenancy:** Shared nodes (vCluster pods run on the same nodes as everything else).
+
+**Files:**
+
+- `gitops/platform/overlays/kind/vcluster-dev/application.yaml` — deploys the vCluster
+- `gitops/vclusters/apps/` — Applications targeting the vCluster destination
+
+---
+
+### Phase 2 — Multi-environment, kind + EKS (planned)
+
+**What:** Three vClusters per host cluster: `vcluster-dev`, `vcluster-pre`, `vcluster-pro`.
+Platform services remain shared on the host.
+
+**New vs Phase 1:**
+
+- **Kargo** manages promotion: dev → pre → pro. A new image tag in dev flows through
+  Kargo stages with automated checks and a manual approval gate before pro.
+- **GitOps cluster registration:** The ArgoCD cluster Secret is committed to git with
+  AVP placeholders. The `argocd-manager` token is stored in Vault. ArgoCD syncs and
+  injects the values via the AVP plugin. No manual `kubectl apply` needed after the
+  initial token seeding.
+- **EKS pro** uses dedicated nodes (nodeSelector + taint on the vCluster StatefulSet)
+  to guarantee resource isolation for production workloads.
+
+**Vault path for cluster tokens (Phase 2 convention):**
+
+```
+secret/argocd/clusters/<vcluster-name>/token   ← argocd-manager bearer token
+secret/argocd/clusters/<vcluster-name>/ca      ← base64 CA cert
+```
+
+**Files to add:**
+
+- `gitops/platform/overlays/eks/vcluster-dev/application.yaml`
+- `gitops/platform/overlays/eks/vcluster-pre/application.yaml`
+- `gitops/platform/overlays/eks/vcluster-pro/application.yaml`
+- `gitops/platform/overlays/eks/cluster-registrations/` — AVP-annotated cluster Secrets
+
+---
+
+### Phase 3 — Self-contained vClusters (planned)
+
+**What:** Each vCluster carries its own full platform stack: Vault, VSO, MongoDB,
+APISIX or Kong, Velero. No dependency on host platform services.
+
+**Why:** Full environment portability — a vCluster can move to a different host cluster
+without reconfiguration. Stronger blast radius isolation between environments.
+
+**Trade-offs:** Higher resource consumption per vCluster. More complex bootstrap:
+Vault must be initialized and unsealed inside each vCluster before apps can start.
+The internal-Vault bootstrap sequence mirrors the host-cluster bootstrap (see
+[runbook 02-vault-bootstrap.md](02-vault-bootstrap.md)).
+
+---
+
 ## Architecture (Phase 1 — Shared Platform)
 
 ```

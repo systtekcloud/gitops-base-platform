@@ -135,6 +135,79 @@ Stage: pro vCluster ──→ automated sync
 
 Kargo writes the new image tag back to the ArgoCD Application values. ArgoCD reconciles each vCluster independently.
 
+## vCluster Strategy
+
+vClusters provide environment isolation (dev / pre / pro) without the cost of separate
+host clusters. The platform evolves across three phases.
+
+### Phase 1 — Shared platform, kind only (current)
+
+One vCluster (`vcluster-dev`) on the kind cluster. The host cluster runs all platform
+services (Vault, Keycloak, Grafana, Prometheus). Apps inside the vCluster consume
+platform services via two mechanisms:
+
+- **Secret sync**: VSO on the host creates K8s Secrets from Vault. The vCluster copies
+  specific named Secrets into its own namespaces via `sync.fromHost.secrets.mappings.byName`.
+- **Shared ingress**: APISIX runs on the host; vCluster syncs Ingress objects to the host.
+
+ArgoCD cluster registration is done manually (see runbook 12). The `argocd-manager`
+ServiceAccount token is stored directly as a K8s Secret in the `argo` namespace.
+
+```
+Host cluster (kind)
+├── Vault · VSO · Keycloak · Grafana · Prometheus · APISIX   ← shared
+└── vcluster-dev namespace
+    └── StatefulSet: vcluster-dev-0
+        ├── kube-system (argocd-manager SA)
+        └── App namespaces (httpbin, ...)
+            └── Secrets synced from host via fromHost.secrets
+```
+
+### Phase 2 — Multi-environment, kind + EKS
+
+Three vClusters per host cluster: `vcluster-dev`, `vcluster-pre`, `vcluster-pro`.
+Platform services remain on the host (shared model).
+
+Key additions vs Phase 1:
+
+- **Kargo** manages the promotion pipeline: dev → pre → pro.
+- **GitOps cluster registration**: the ArgoCD cluster Secret is stored in git with AVP
+  placeholders. The `argocd-manager` token lives in Vault. No manual Secret creation.
+- EKS pro vCluster uses dedicated nodes (nodeSelector + taint) to guarantee resource
+  isolation for production workloads.
+
+```
+EKS Host Cluster
+├── Shared platform namespaces
+├── vcluster-dev  (shared nodes)
+├── vcluster-pre  (shared nodes)
+└── vcluster-pro  (dedicated nodes — nodeSelector + taint)
+```
+
+Tenancy models:
+
+| Model | How | When to use |
+| --- | --- | --- |
+| Shared nodes | Default (no nodeSelector) | dev / pre — cost-efficient |
+| Dedicated nodes | nodeSelector + toleration in vcluster values | pro — guaranteed resources |
+| Isolated nodes | Exclusive taint on nodes, vCluster tolerates only its own | highest isolation, highest cost |
+
+### Phase 3 — Self-contained vClusters
+
+Each vCluster carries its own full platform stack: Vault, VSO, MongoDB, APISIX or Kong,
+Velero. No dependency on host platform services.
+
+Enables:
+
+- Full environment portability (vCluster can move to a different host cluster)
+- Independent secret management per environment
+- Stronger blast radius isolation
+
+Trade-offs: higher resource consumption per vCluster, more complex bootstrap (Vault must
+be initialized inside each vCluster before apps can start).
+
+---
+
 ## Umbrella Chart Feature Flags
 
 Each app activates only the platform integrations it needs:
