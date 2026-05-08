@@ -8,11 +8,11 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: platform
+  project: cloudframe-platform
   source:
     repoURL: https://charts.loft.sh
     chart: vcluster-platform
-    targetRevision: 4.8.0
+    targetRevision: 4.9.0
   destination:
     server: https://kubernetes.default.svc
     namespace: vcluster-platform
