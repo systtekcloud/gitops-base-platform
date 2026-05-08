@@ -12,6 +12,11 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: '*'
       server: https://vcluster-dev.vcluster-dev.svc.cluster.local:443
+    - namespace: '*'
+      server: https://vcluster-pre.vcluster-pre.svc.cluster.local:443
+    - namespace: '*'
+      server: https://vcluster-pro.vcluster-pro.svc.cluster.local:443
+
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
