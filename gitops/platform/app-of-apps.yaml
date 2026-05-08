@@ -31,6 +31,8 @@ spec:
   destinations:
     - namespace: '*'
       server: https://kubernetes.default.svc
+    - namespace: '*'
+      server: https://vcluster-dev.vcluster-dev.svc.cluster.local:443
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'

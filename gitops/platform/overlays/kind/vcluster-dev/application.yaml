@@ -19,6 +19,9 @@ spec:
           distro:
             k8s:
               enabled: true
+              apiServer:
+                extraArgs:
+                  - "--tls-san=vcluster-dev.vcluster-dev.svc.cluster.local"
           statefulSet:
             resources:
               requests:
