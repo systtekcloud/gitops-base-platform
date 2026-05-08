@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-secrets
+  namespace: argo
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: cloudframe-platform
+  source:
+    repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+    path: gitops/platform/base/cluster-secrets
+    targetRevision: main
+    plugin:
+      name: argocd-vault-plugin
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
