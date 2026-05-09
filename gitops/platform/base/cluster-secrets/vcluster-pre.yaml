@@ -1,14 +1,16 @@
-apiVersion: v1
-kind: Secret
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
 metadata:
   name: cluster-vcluster-pre
   namespace: argo
-  labels:
-    argocd.argoproj.io/secret-type: cluster
-  annotations:
-    avp.kubernetes.io/path: "secret/data/argocd/clusters/vcluster-pre"
-stringData:
-  name: vcluster-pre
-  server: https://vcluster-pre.vcluster-pre.svc.cluster.local:443
-  config: |
-    {"bearerToken": "<token>", "tlsClientConfig": {"insecure": true}}
+spec:
+  type: kv-v2
+  mount: secret
+  path: argocd/clusters/vcluster-pre
+  destination:
+    name: cluster-vcluster-pre
+    create: true
+    labels:
+      argocd.argoproj.io/secret-type: cluster
+  refreshAfter: 1h
+  vaultAuthRef: argocd-vault-auth
