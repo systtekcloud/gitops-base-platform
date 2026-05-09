@@ -10,15 +10,17 @@ metadata:
 spec:
   project: cloudframe-platform
   source:
-    repoURL: https://charts.kargo.io
+    repoURL: ghcr.io/akuity/kargo-charts
     chart: kargo
     targetRevision: 1.9.5
     helm:
-      values: |
+      valuesObject:
         api:
+          secret:
+            name: kargo-admin-secret
           adminAccount:
             enabled: true
-            passwordHash: ""    # Generar con: htpasswd -bnBC 10 "" admin | tr -d ':\n'
+            tokenTTL: 24h
   destination:
     server: https://kubernetes.default.svc
     namespace: kargo
