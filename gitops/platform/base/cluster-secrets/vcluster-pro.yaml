@@ -6,7 +6,7 @@ metadata:
 spec:
   type: kv-v2
   mount: secret
-  path: argocd/clusters/vcluster-pro
+  path: platform/argocd/clusters/vcluster-pro
   destination:
     name: cluster-vcluster-pro
     create: true
