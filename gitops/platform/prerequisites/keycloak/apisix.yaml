@@ -30,6 +30,7 @@ metadata:
   name: keycloak-route
   namespace: keycloak
 spec:
+  ingressClassName: apisix
   http:
     - name: keycloak
       match:
@@ -40,4 +41,3 @@ spec:
       backends:
         - serviceName: keycloak
           servicePort: 8080
-      ingressClassName: apisix
