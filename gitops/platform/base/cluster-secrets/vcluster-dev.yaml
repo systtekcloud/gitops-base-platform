@@ -1,0 +1,16 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: cluster-vcluster-dev
+  namespace: argo
+spec:
+  type: kv-v2
+  mount: secret
+  path: platform/argocd/clusters/vcluster-dev
+  destination:
+    name: cluster-vcluster-dev
+    create: true
+    labels:
+      argocd.argoproj.io/secret-type: cluster
+  refreshAfter: 1h
+  vaultAuthRef: argocd-vault-auth
