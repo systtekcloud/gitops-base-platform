@@ -1,0 +1,11 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: httpbin
+  namespace: httpbin
+spec:
+  subscriptions:
+  - chart:
+      repoURL: https://matheusfm.dev/charts
+      name: httpbin
+      semverConstraint: ">=0.1.1"

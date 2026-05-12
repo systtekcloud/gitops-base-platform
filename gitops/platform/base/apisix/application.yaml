@@ -1,0 +1,72 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apisix
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: cloudframe-platform
+  source:
+    repoURL: https://charts.apiseven.com
+    chart: apisix
+    targetRevision: 2.14.0
+    helm:
+      valuesObject:
+        service:
+          type: LoadBalancer
+          externalTrafficPolicy: Cluster
+          http:
+            enabled: true
+            servicePort: 80
+            containerPort: 9080
+          tls:
+            servicePort: 443
+          stream:
+            enabled: true
+            tcp: [9100]
+            udp: [9200]
+        metrics:
+          serviceMonitor:
+            enabled: false
+        apisix:
+          admin:
+            enabled: true
+            enable_admin_ui: true
+            allow:
+              ipList:
+                - 0.0.0.0/0
+            ingress:
+              enabled: false
+          ssl:
+            enabled: true
+          prometheus:
+            enabled: true
+        ingress-controller:
+          enabled: true
+          apisix:
+            adminService:
+              serviceNamespace: ingress-apisix
+          config:
+            kubernetes:
+              ingressClass: apisix
+          gatewayProxy:
+            createDefault: true
+            controlPlane:
+              auth:
+                type: SecretRef
+                secretRef:
+                  name: apisix-admin-credentials
+              endpoints:
+                - http://apisix-admin.ingress-apisix.svc.cluster.local:9180
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ingress-apisix
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,43 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-dev-local-lp-cert
+  namespace: argo
+spec:
+  secretName: argocd-dev-local-lp-tls
+  dnsNames:
+    - argocd-dev.local.lp
+  issuerRef:
+    name: lab-local-ca
+    kind: ClusterIssuer
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixTls
+metadata:
+  name: argocd-dev-local-lp
+  namespace: argo
+spec:
+  hosts:
+    - argocd-dev.local.lp
+  ingressClassName: apisix
+  secret:
+    name: argocd-dev-local-lp-tls
+    namespace: argo
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: argocd-route
+  namespace: argo
+spec:
+  http:
+    - name: argocd
+      match:
+        hosts:
+          - argocd-dev.local.lp
+        paths:
+          - /*
+      backends:
+        - serviceName: argocd-server
+          servicePort: 80
+      ingressClassName: apisix

@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: grafana-secrets
+  name: keycloak-setup
   namespace: argo
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -12,10 +12,10 @@ spec:
   source:
     repoURL: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
     targetRevision: HEAD
-    path: gitops/platform/prerequisites/grafana
+    path: gitops/platform/prerequisites/keycloak
   destination:
     server: https://kubernetes.default.svc
-    namespace: observability
+    namespace: keycloak
   syncPolicy:
     automated:
       prune: true

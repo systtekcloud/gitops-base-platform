@@ -21,6 +21,11 @@ spec:
           adminAccount:
             enabled: true
             tokenTTL: 24h
+          argocd:
+            namespace: argo
+        controller:
+          argocd:
+            namespace: argo
   destination:
     server: https://kubernetes.default.svc
     namespace: kargo

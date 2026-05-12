@@ -1,0 +1,82 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: dev
+  namespace: httpbin
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: httpbin
+    sources:
+      direct: true
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: argocd-update
+        as: update
+        config:
+          apps:
+          - name: httpbin-dev
+            namespace: argo
+            sources:
+            - repoURL: https://matheusfm.dev/charts
+              chart: httpbin
+              desiredRevision: ${{ freight.from("Warehouse", "httpbin").chart("https://matheusfm.dev/charts", "httpbin").version }}
+            updateTargetRevision: true
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: pre
+  namespace: httpbin
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: httpbin
+    sources:
+      stages:
+      - dev
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: argocd-update
+        as: update
+        config:
+          apps:
+          - name: httpbin-pre
+            namespace: argo
+            sources:
+            - repoURL: https://matheusfm.dev/charts
+              chart: httpbin
+              desiredRevision: ${{ freight.from("Warehouse", "httpbin").chart("https://matheusfm.dev/charts", "httpbin").version }}
+            updateTargetRevision: true
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: pro
+  namespace: httpbin
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: httpbin
+    sources:
+      stages:
+      - pre
+  promotionTemplate:
+    spec:
+      steps:
+      - uses: argocd-update
+        as: update
+        config:
+          apps:
+          - name: httpbin-pro
+            namespace: argo
+            sources:
+            - repoURL: https://matheusfm.dev/charts
+              chart: httpbin
+              desiredRevision: ${{ freight.from("Warehouse", "httpbin").chart("https://matheusfm.dev/charts", "httpbin").version }}
+            updateTargetRevision: true

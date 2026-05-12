@@ -1,0 +1,43 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: keycloak-dev-local-lp-cert
+  namespace: keycloak
+spec:
+  secretName: keycloak-dev-local-lp-tls
+  dnsNames:
+    - keycloak-dev.local.lp
+  issuerRef:
+    name: lab-local-ca
+    kind: ClusterIssuer
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixTls
+metadata:
+  name: keycloak-dev-local-lp
+  namespace: keycloak
+spec:
+  hosts:
+    - keycloak-dev.local.lp
+  ingressClassName: apisix
+  secret:
+    name: keycloak-dev-local-lp-tls
+    namespace: keycloak
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: keycloak-route
+  namespace: keycloak
+spec:
+  http:
+    - name: keycloak
+      match:
+        hosts:
+          - keycloak-dev.local.lp
+        paths:
+          - /*
+      backends:
+        - serviceName: keycloak
+          servicePort: 8080
+      ingressClassName: apisix
