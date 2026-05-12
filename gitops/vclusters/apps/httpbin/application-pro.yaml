@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: httpbin-pro
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: cloudframe-platform
+  source:
+    repoURL: https://matheusfm.dev/charts
+    chart: httpbin
+    targetRevision: 0.1.1
+  destination:
+    server: https://vcluster-pro.vcluster-pro.svc.cluster.local:443
+    namespace: httpbin
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
