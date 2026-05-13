@@ -38,7 +38,7 @@ spec:
       - uses: git-push
         config:
           path: ./repo
-          branch: main
+          targetBranch: main
       - uses: argocd-update
         config:
           apps:
@@ -91,7 +91,7 @@ spec:
       - uses: git-push
         config:
           path: ./repo
-          branch: main
+          targetBranch: main
       - uses: argocd-update
         config:
           apps:
@@ -144,7 +144,7 @@ spec:
       - uses: git-push
         config:
           path: ./repo
-          branch: main
+          targetBranch: main
       - uses: argocd-update
         config:
           apps:
