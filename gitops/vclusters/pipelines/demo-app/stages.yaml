@@ -46,6 +46,7 @@ spec:
             namespace: argo
             sources:
             - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
+              chart: demo-app
               desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
               updateTargetRevision: true
 ---
@@ -98,6 +99,7 @@ spec:
             namespace: argo
             sources:
             - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
+              chart: demo-app
               desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
               updateTargetRevision: true
 ---
@@ -150,5 +152,6 @@ spec:
             namespace: argo
             sources:
             - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
+              chart: demo-app
               desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
               updateTargetRevision: true
