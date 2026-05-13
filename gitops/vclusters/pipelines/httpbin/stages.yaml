@@ -22,7 +22,7 @@ spec:
             sources:
             - repoURL: https://matheusfm.dev/charts
               chart: httpbin
-              desiredRevision: ${{ freight.from("Warehouse", "httpbin").chart("https://matheusfm.dev/charts", "httpbin").version }}
+              desiredRevision: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
             updateTargetRevision: true
 ---
 apiVersion: kargo.akuity.io/v1alpha1
@@ -50,7 +50,7 @@ spec:
             sources:
             - repoURL: https://matheusfm.dev/charts
               chart: httpbin
-              desiredRevision: ${{ freight.from("Warehouse", "httpbin").chart("https://matheusfm.dev/charts", "httpbin").version }}
+              desiredRevision: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
             updateTargetRevision: true
 ---
 apiVersion: kargo.akuity.io/v1alpha1
@@ -78,5 +78,5 @@ spec:
             sources:
             - repoURL: https://matheusfm.dev/charts
               chart: httpbin
-              desiredRevision: ${{ freight.from("Warehouse", "httpbin").chart("https://matheusfm.dev/charts", "httpbin").version }}
+              desiredRevision: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
             updateTargetRevision: true
