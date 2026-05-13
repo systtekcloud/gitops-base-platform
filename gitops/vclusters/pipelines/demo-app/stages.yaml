@@ -44,11 +44,6 @@ spec:
           apps:
           - name: demo-app-dev
             namespace: argo
-            sources:
-            - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
-              chart: demo-app
-              desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
-              updateTargetRevision: true
 ---
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
@@ -97,11 +92,6 @@ spec:
           apps:
           - name: demo-app-pre
             namespace: argo
-            sources:
-            - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
-              chart: demo-app
-              desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
-              updateTargetRevision: true
 ---
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
@@ -150,8 +140,3 @@ spec:
           apps:
           - name: demo-app-pro
             namespace: argo
-            sources:
-            - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
-              chart: demo-app
-              desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
-              updateTargetRevision: true
