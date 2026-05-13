@@ -12,9 +12,34 @@ spec:
       direct: true
   promotionTemplate:
     spec:
+      vars:
+      - name: gitRepo
+        value: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+      - name: appFile
+        value: gitops/vclusters/apps/httpbin/application-dev.yaml
       steps:
+      - uses: git-clone
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          checkout:
+          - branch: main
+            path: ./repo
+      - uses: yaml-update
+        config:
+          path: ./repo/${{ vars.appFile }}
+          updates:
+          - key: spec.source.targetRevision
+            value: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
+      - uses: git-commit
+        as: commit
+        config:
+          path: ./repo
+          message: "chore: promote httpbin ${{ chartFrom(\"https://matheusfm.dev/charts\", \"httpbin\").Version }} to dev"
+      - uses: git-push
+        config:
+          path: ./repo
+          branch: main
       - uses: argocd-update
-        as: update
         config:
           apps:
           - name: httpbin-dev
@@ -40,9 +65,34 @@ spec:
       - dev
   promotionTemplate:
     spec:
+      vars:
+      - name: gitRepo
+        value: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+      - name: appFile
+        value: gitops/vclusters/apps/httpbin/application-pre.yaml
       steps:
+      - uses: git-clone
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          checkout:
+          - branch: main
+            path: ./repo
+      - uses: yaml-update
+        config:
+          path: ./repo/${{ vars.appFile }}
+          updates:
+          - key: spec.source.targetRevision
+            value: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
+      - uses: git-commit
+        as: commit
+        config:
+          path: ./repo
+          message: "chore: promote httpbin ${{ chartFrom(\"https://matheusfm.dev/charts\", \"httpbin\").Version }} to pre"
+      - uses: git-push
+        config:
+          path: ./repo
+          branch: main
       - uses: argocd-update
-        as: update
         config:
           apps:
           - name: httpbin-pre
@@ -68,9 +118,34 @@ spec:
       - pre
   promotionTemplate:
     spec:
+      vars:
+      - name: gitRepo
+        value: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+      - name: appFile
+        value: gitops/vclusters/apps/httpbin/application-pro.yaml
       steps:
+      - uses: git-clone
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          checkout:
+          - branch: main
+            path: ./repo
+      - uses: yaml-update
+        config:
+          path: ./repo/${{ vars.appFile }}
+          updates:
+          - key: spec.source.targetRevision
+            value: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
+      - uses: git-commit
+        as: commit
+        config:
+          path: ./repo
+          message: "chore: promote httpbin ${{ chartFrom(\"https://matheusfm.dev/charts\", \"httpbin\").Version }} to pro"
+      - uses: git-push
+        config:
+          path: ./repo
+          branch: main
       - uses: argocd-update
-        as: update
         config:
           apps:
           - name: httpbin-pro
