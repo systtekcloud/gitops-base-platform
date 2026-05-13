@@ -23,7 +23,7 @@ spec:
             - repoURL: https://matheusfm.dev/charts
               chart: httpbin
               desiredRevision: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
-            updateTargetRevision: true
+              updateTargetRevision: true
 ---
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
@@ -51,7 +51,7 @@ spec:
             - repoURL: https://matheusfm.dev/charts
               chart: httpbin
               desiredRevision: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
-            updateTargetRevision: true
+              updateTargetRevision: true
 ---
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
@@ -79,4 +79,4 @@ spec:
             - repoURL: https://matheusfm.dev/charts
               chart: httpbin
               desiredRevision: ${{ chartFrom("https://matheusfm.dev/charts", "httpbin").Version }}
-            updateTargetRevision: true
+              updateTargetRevision: true
