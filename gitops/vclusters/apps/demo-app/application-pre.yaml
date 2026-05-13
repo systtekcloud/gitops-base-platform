@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo-app-pre
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    kargo.akuity.io/authorized-stage: demo-app:pre
+spec:
+  project: cloudframe-platform
+  source:
+    repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
+    chart: demo-app
+    targetRevision: 1.0.0
+  destination:
+    server: https://vcluster-pre.vcluster-pre.svc.cluster.local:443
+    namespace: demo-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,8 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Project
+metadata:
+  name: demo-app
+spec:
+  promotionPolicies:
+  - stage: dev
+    autoPromotion: true

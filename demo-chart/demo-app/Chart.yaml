@@ -1,0 +1,6 @@
+apiVersion: v2
+name: demo-app
+description: Simple demo app for Kargo pipeline testing
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

@@ -1,0 +1,154 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: dev
+  namespace: demo-app
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: demo-app
+    sources:
+      direct: true
+  promotionTemplate:
+    spec:
+      vars:
+      - name: gitRepo
+        value: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+      - name: appFile
+        value: gitops/vclusters/apps/demo-app/application-dev.yaml
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          checkout:
+          - branch: main
+            path: ./repo
+      - uses: yaml-update
+        config:
+          path: ./repo/${{ vars.appFile }}
+          updates:
+          - key: spec.source.targetRevision
+            value: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
+      - uses: git-commit
+        as: commit
+        config:
+          path: ./repo
+          message: "chore: promote demo-app ${{ chartFrom(\"oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app\").Version }} to dev"
+      - uses: git-push
+        config:
+          path: ./repo
+          branch: main
+      - uses: argocd-update
+        config:
+          apps:
+          - name: demo-app-dev
+            namespace: argo
+            sources:
+            - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
+              desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
+              updateTargetRevision: true
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: pre
+  namespace: demo-app
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: demo-app
+    sources:
+      stages:
+      - dev
+  promotionTemplate:
+    spec:
+      vars:
+      - name: gitRepo
+        value: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+      - name: appFile
+        value: gitops/vclusters/apps/demo-app/application-pre.yaml
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          checkout:
+          - branch: main
+            path: ./repo
+      - uses: yaml-update
+        config:
+          path: ./repo/${{ vars.appFile }}
+          updates:
+          - key: spec.source.targetRevision
+            value: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
+      - uses: git-commit
+        as: commit
+        config:
+          path: ./repo
+          message: "chore: promote demo-app ${{ chartFrom(\"oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app\").Version }} to pre"
+      - uses: git-push
+        config:
+          path: ./repo
+          branch: main
+      - uses: argocd-update
+        config:
+          apps:
+          - name: demo-app-pre
+            namespace: argo
+            sources:
+            - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
+              desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
+              updateTargetRevision: true
+---
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: pro
+  namespace: demo-app
+spec:
+  requestedFreight:
+  - origin:
+      kind: Warehouse
+      name: demo-app
+    sources:
+      stages:
+      - pre
+  promotionTemplate:
+    spec:
+      vars:
+      - name: gitRepo
+        value: https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git
+      - name: appFile
+        value: gitops/vclusters/apps/demo-app/application-pro.yaml
+      steps:
+      - uses: git-clone
+        config:
+          repoURL: ${{ vars.gitRepo }}
+          checkout:
+          - branch: main
+            path: ./repo
+      - uses: yaml-update
+        config:
+          path: ./repo/${{ vars.appFile }}
+          updates:
+          - key: spec.source.targetRevision
+            value: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
+      - uses: git-commit
+        as: commit
+        config:
+          path: ./repo
+          message: "chore: promote demo-app ${{ chartFrom(\"oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app\").Version }} to pro"
+      - uses: git-push
+        config:
+          path: ./repo
+          branch: main
+      - uses: argocd-update
+        config:
+          apps:
+          - name: demo-app-pro
+            namespace: argo
+            sources:
+            - repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
+              desiredRevision: ${{ chartFrom("oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app").Version }}
+              updateTargetRevision: true
