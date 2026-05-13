@@ -1,0 +1,131 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: httpbin-dev-local-lp-cert
+  namespace: vcluster-dev
+spec:
+  secretName: httpbin-dev-local-lp-tls
+  dnsNames:
+    - httpbin-dev.local.lp
+  issuerRef:
+    name: lab-local-ca
+    kind: ClusterIssuer
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixTls
+metadata:
+  name: httpbin-dev-local-lp
+  namespace: vcluster-dev
+spec:
+  hosts:
+    - httpbin-dev.local.lp
+  ingressClassName: apisix
+  secret:
+    name: httpbin-dev-local-lp-tls
+    namespace: vcluster-dev
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: httpbin-dev-route
+  namespace: vcluster-dev
+spec:
+  ingressClassName: apisix
+  http:
+    - name: httpbin-dev
+      match:
+        hosts:
+          - httpbin-dev.local.lp
+        paths:
+          - /*
+      backends:
+        - serviceName: httpbin-dev-x-httpbin-x-vcluster-dev
+          servicePort: 80
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: httpbin-pre-local-lp-cert
+  namespace: vcluster-pre
+spec:
+  secretName: httpbin-pre-local-lp-tls
+  dnsNames:
+    - httpbin-pre.local.lp
+  issuerRef:
+    name: lab-local-ca
+    kind: ClusterIssuer
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixTls
+metadata:
+  name: httpbin-pre-local-lp
+  namespace: vcluster-pre
+spec:
+  hosts:
+    - httpbin-pre.local.lp
+  ingressClassName: apisix
+  secret:
+    name: httpbin-pre-local-lp-tls
+    namespace: vcluster-pre
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: httpbin-pre-route
+  namespace: vcluster-pre
+spec:
+  ingressClassName: apisix
+  http:
+    - name: httpbin-pre
+      match:
+        hosts:
+          - httpbin-pre.local.lp
+        paths:
+          - /*
+      backends:
+        - serviceName: httpbin-pre-x-httpbin-x-vcluster-pre
+          servicePort: 80
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: httpbin-pro-local-lp-cert
+  namespace: vcluster-pro
+spec:
+  secretName: httpbin-pro-local-lp-tls
+  dnsNames:
+    - httpbin-pro.local.lp
+  issuerRef:
+    name: lab-local-ca
+    kind: ClusterIssuer
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixTls
+metadata:
+  name: httpbin-pro-local-lp
+  namespace: vcluster-pro
+spec:
+  hosts:
+    - httpbin-pro.local.lp
+  ingressClassName: apisix
+  secret:
+    name: httpbin-pro-local-lp-tls
+    namespace: vcluster-pro
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: httpbin-pro-route
+  namespace: vcluster-pro
+spec:
+  ingressClassName: apisix
+  http:
+    - name: httpbin-pro
+      match:
+        hosts:
+          - httpbin-pro.local.lp
+        paths:
+          - /*
+      backends:
+        - serviceName: httpbin-pro-x-httpbin-x-vcluster-pro
+          servicePort: 80
