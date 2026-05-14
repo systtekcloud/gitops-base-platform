@@ -31,6 +31,13 @@ spec:
         metrics:
           serviceMonitor:
             enabled: false
+        etcd:
+          enabled: false
+        externalEtcd:
+          host:
+            - http://apisix-etcd.ingress-apisix.svc.cluster.local:2379
+          user: ""
+          password: ""
         apisix:
           admin:
             enabled: true
