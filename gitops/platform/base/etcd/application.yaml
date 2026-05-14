@@ -10,7 +10,7 @@ metadata:
 spec:
   project: cloudframe-platform
   source:
-    repoURL: oci://registry-1.docker.io/cloudpirates
+    repoURL: oci://registry-1.docker.io/cloudpirates/etcd
     chart: etcd
     targetRevision: 0.7.1
     helm:
