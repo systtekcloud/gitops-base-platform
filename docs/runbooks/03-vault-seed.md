@@ -75,6 +75,70 @@ kubectl exec -it vault-0 -n vault -- \
   vault kv get secret/dev/grafana
 ```
 
+## ArgoCD repository credentials
+
+ArgoCD connects to source repositories via K8s Secrets labelled
+`argocd.argoproj.io/secret-type: repository`. These Secrets are created by VSO from
+the following Vault paths. Seed them before the `prerequisites` wave syncs.
+
+### GitLab — gitops-base-platform (private, HTTPS PAT)
+
+```bash
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault kv put secret/platform/argocd/gitlab-pat \
+    username=<gitlab-username-or-token-name> \
+    password=<personal-access-token>
+```
+
+The PAT needs `read_repository` scope. Do **not** store `url` or `type` in Vault —
+those are hardcoded in the VaultStaticSecret template and a Vault field with the same
+name would override the template.
+
+### GitLab — Package Registry (Helm charts, HTTPS)
+
+```bash
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault kv put secret/platform/argocd/gitlab-pkg \
+    username=<deploy-token-or-username> \
+    password=<deploy-token-or-pat>
+```
+
+A deploy token with `read_package_registry` scope works. A PAT with `read_api` scope also works.
+
+### GitHub — SSH key
+
+```bash
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault kv put secret/platform/argocd/github-ssh \
+    sshPrivateKey=@$HOME/.ssh/<your-deploy-key>
+```
+
+The corresponding public key must be added as a Deploy Key in the GitHub repository settings.
+
+### Kargo — GitLab git credentials (for demo-app promotion pipeline)
+
+```bash
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault kv put secret/platform/kargo/gitlab \
+    username=<gitlab-username-or-token-name> \
+    password=<personal-access-token>
+```
+
+Requires `read_repository` + `write_repository` scope so Kargo can commit tag updates.
+
+### Verify
+
+```bash
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault kv list secret/platform/argocd
+# Expected: gitlab-pat  gitlab-pkg  github-ssh
+```
+
 ## App secrets before app deployment
 
 Pattern:

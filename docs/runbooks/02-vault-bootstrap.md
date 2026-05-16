@@ -103,6 +103,57 @@ kubectl exec -it vault-0 -n vault -- \
     ttl=24h
 ```
 
+For ArgoCD (repository credentials):
+
+VSO in the `argo` namespace needs to read `platform/argocd/*` to create ArgoCD repo credential Secrets.
+The `VaultAuth` resource in `gitops/platform/base/cluster-secrets/vault-auth.yaml` references role `argocd-vso`.
+
+```bash
+cat <<'EOF' >/tmp/argocd-vso-policy.hcl
+path "secret/data/platform/argocd/*" {
+  capabilities = ["read"]
+}
+EOF
+
+kubectl cp /tmp/argocd-vso-policy.hcl vault/vault-0:/tmp/argocd-vso-policy.hcl
+
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault policy write argocd-vso /tmp/argocd-vso-policy.hcl
+
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault write auth/kubernetes/role/argocd-vso \
+    bound_service_account_names=default \
+    bound_service_account_namespaces=argo \
+    policies=argocd-vso \
+    ttl=24h
+```
+
+For the `demo-app` Kargo pipeline (git + image pull credentials):
+
+```bash
+cat <<'EOF' >/tmp/demo-app-vso-policy.hcl
+path "secret/data/platform/kargo/*" {
+  capabilities = ["read"]
+}
+EOF
+
+kubectl cp /tmp/demo-app-vso-policy.hcl vault/vault-0:/tmp/demo-app-vso-policy.hcl
+
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault policy write demo-app-vso /tmp/demo-app-vso-policy.hcl
+
+kubectl exec -it vault-0 -n vault -- \
+  env VAULT_ADDR=http://127.0.0.1:8200 VAULT_TOKEN="$VAULT_ROOT_TOKEN" \
+  vault write auth/kubernetes/role/demo-app-vso \
+    bound_service_account_names=default \
+    bound_service_account_namespaces=demo-app \
+    policies=demo-app-vso \
+    ttl=24h
+```
+
 ## Step 4 — Verify the default VaultConnection
 
 VSO creates or uses a default `VaultConnection` in the operator namespace. The

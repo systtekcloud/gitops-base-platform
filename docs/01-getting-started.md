@@ -42,12 +42,41 @@ kubectl get pods -n argo
 # All pods must be Running before continuing
 ```
 
-### Step 2 — Create the AppProject
+### Step 2 — Bootstrap ArgoCD repo credentials
 
-The AppProject defines what repos and namespaces ArgoCD is allowed to manage.
+The GitLab repo is **private**. ArgoCD needs credentials before it can pull any
+Application manifests. This step creates a temporary credential Secret by hand;
+VSO will take over managing it once the platform syncs.
 
 ```bash
-kubectl apply -f gitops/platform/app-of-apps.yaml
+# Replace with your GitLab username and a PAT with read_repository scope
+kubectl create secret generic repo-gitlab-bootstrap \
+  -n argo \
+  --from-literal=type=git \
+  --from-literal=url=https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git \
+  --from-literal=username=<gitlab-username> \
+  --from-literal=password=<personal-access-token>
+
+kubectl label secret repo-gitlab-bootstrap -n argo \
+  argocd.argoproj.io/secret-type=repository
+```
+
+After the platform syncs (Step 5), VSO creates a managed Secret (`repo-gitlab-gitops-base`)
+from Vault. At that point the bootstrap Secret is redundant and can be deleted:
+
+```bash
+kubectl delete secret repo-gitlab-bootstrap -n argo
+```
+
+### Step 3 — Create the AppProject
+
+The AppProject defines what repos and namespaces ArgoCD is allowed to manage.
+The manifest lives in the gitops repo itself and ArgoCD will manage it after initial
+sync — but it must exist before the root Application is applied, because ArgoCD
+validates `project: cloudframe-platform` on creation.
+
+```bash
+kubectl apply -f gitops/platform/base/argocd-project.yaml
 ```
 
 Verify:
@@ -56,7 +85,7 @@ Verify:
 kubectl get appproject cloudframe-platform -n argo
 ```
 
-### Step 3 — Apply the root Application
+### Step 4 — Apply the root Application
 
 This is the entry point for the App of Apps pattern. ArgoCD reads this manifest,
 then discovers and creates all child Applications from the paths defined inside it.
@@ -87,7 +116,7 @@ Open `http://localhost:8080` — login: `admin` / password from above.
 
 ArgoCD syncs components in waves. Expected order:
 
-```
+```text
 Wave 1: kyverno, mongodb-operator, crossplane       (~3 min)
 Wave 3: keycloak-secrets, grafana-secrets (VSO sync) (~2 min)
 Wave 4: keycloak-postgres, kargo                    (~2 min)
@@ -121,7 +150,7 @@ helm upgrade --install argo-apps charts/cloudframe-bootstrap/argo-apps \
 
 ## Understanding the App of Apps pattern
 
-```
+```text
 argo-apps-kind.yml  (root Application — you apply this once)
     │
     ▼
@@ -142,7 +171,7 @@ Sync waves control the order: wave 1 runs first, wave 6 runs last.
 ## Runbooks
 
 | Order | Runbook | When to use |
-|---|---|---|
+| --- | --- | --- |
 | 1 | [01-kind-overlay.md](runbooks/01-kind-overlay.md) | Reference for kind-specific setup decisions |
 | 2 | [02-vault-bootstrap.md](runbooks/02-vault-bootstrap.md) | Configure VSO to connect to Vault |
 | 3 | [03-vault-seed.md](runbooks/03-vault-seed.md) | Seed platform secrets into Vault |
@@ -158,7 +187,7 @@ Sync waves control the order: wave 1 runs first, wave 6 runs last.
 ## Troubleshooting
 
 | Symptom | Command | Likely cause |
-|---|---|---|
+| --- | --- | --- |
 | Applications not appearing after step 3 | `kubectl describe application argo-apps-kind -n argo` | Repo not reachable or wrong repoURL |
 | App stuck `OutOfSync` | `kubectl describe application <name> -n argo` | YAML error or missing CRD |
 | keycloak-secrets `OutOfSync` | `kubectl get vaultconnection default -n vault-secrets-operator` | Default VaultConnection missing or Vault unreachable |
