@@ -11,7 +11,7 @@ metadata:
 spec:
   project: cloudframe-platform
   source:
-    repoURL: oci://registry.gitlab.com/eks-vcluster-platform/gitops-base-platform/demo-app
+    repoURL: https://gitlab.com/api/v4/projects/81438572/packages/helm/stable
     chart: demo-app
     targetRevision: 1.0.0
   destination:
