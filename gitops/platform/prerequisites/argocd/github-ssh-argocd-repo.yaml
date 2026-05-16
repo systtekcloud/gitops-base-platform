@@ -1,14 +1,14 @@
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultStaticSecret
 metadata:
-  name: argocd-gitlab-credentials
+  name: argocd-github-credentials
   namespace: argo
 spec:
   type: kv-v2
   mount: secret
-  path: platform/argocd/gitlab
+  path: platform/argocd/github-ssh
   destination:
-    name: repo-gitlab-gitops-base
+    name: repo-github-gitops-demo
     create: true
     labels:
       argocd.argoproj.io/secret-type: repository
@@ -17,10 +17,8 @@ spec:
         type:
           text: 'git'
         url:
-          text: 'https://gitlab.com/eks-vcluster-platform/gitops-base-platform.git'
-        username:
-          text: '{{ .Secrets.username }}'
-        password:
-          text: '{{ .Secrets.password }}'
+          text: 'git@github.com:systtekcloud/gitops-argocd.git'
+        sshPrivateKey:
+          text: '{{ .Secrets.sshPrivateKey }}'
   refreshAfter: 1h
   vaultAuthRef: argocd-vault-auth
