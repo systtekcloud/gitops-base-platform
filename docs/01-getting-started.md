@@ -22,6 +22,32 @@ See [runbooks/02-vault-bootstrap.md](runbooks/02-vault-bootstrap.md) and
 
 ## Initializing ArgoCD — kind
 
+> **Bootstrap order:** Vault → seed Vault → **APISIX** → ArgoCD.
+> APISIX must be running before ArgoCD syncs routes.
+
+### Step 0 — Install Vault + VSO and seed secrets
+
+Run from `cluster-kind-dev-to-pro/`:
+
+```bash
+./scripts/03-install-vault.sh dev
+# Then manually: init + unseal vault-0 (see runbook 02-vault-bootstrap.md)
+./scripts/04-seed-vault.sh dev   # includes APISIX admin key at secret/platform/apisix/dev
+```
+
+### Step 0.5 — Install APISIX
+
+APISIX is installed externally (not via ArgoCD). The install script reads the admin key
+from Vault seeded in the previous step.
+
+```bash
+export VAULT_ROOT_TOKEN="<your-root-token>"
+./scripts/05-install-apisix.sh dev
+```
+
+This installs the APISIX chart into `ingress-apisix` namespace with the admin key from
+Vault. ArgoCD will later manage routes (`ApisixRoute`, `ApisixTls`) but not the chart itself.
+
 ### Step 1 — Install ArgoCD
 
 ```bash
