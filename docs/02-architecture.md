@@ -75,7 +75,7 @@ ArgoCD deploys platform components in waves. Vault and APISIX are installed exte
 ```
 Pre-ArgoCD (manual)
         Vault + VSO      ← installed with Helm, initialized and unsealed manually
-        APISIX           ← installed with Helm (kind) or AWS LBC (EKS)
+        APISIX           ← installed externally: Helm script (kind) / Terraform (EKS)
 
 Wave 1  Crossplane · Kyverno · MongoDB operator
         └── No inter-dependencies. All sync in parallel.

@@ -166,6 +166,12 @@ kubectl get applications -n argo
 ArgoCD and Vault are installed by Terraform (infrastructure repo). Once the cluster
 is up, bootstrap ArgoCD with:
 
+> **APISIX on EKS:** the APISIX chart is installed **externally by Terraform** (same
+> principle as the kind Helm script), not by ArgoCD — only the routes (`ApisixRoute`,
+> `ApisixTls`) stay in ArgoCD. Terraform design and pending work (AWS Load Balancer
+> Controller + admin-key source + `apisix` module) live in the lab02 repo:
+> `docs/design/apisix-eks.md`. Tracked by ETDP-36.
+
 ```bash
 helm upgrade --install argo-apps charts/cloudframe-bootstrap/argo-apps \
   --namespace argo \
@@ -209,6 +215,9 @@ Sync waves control the order: wave 1 runs first, wave 6 runs last.
 | 9 | [09-grafana-https-apisix.md](runbooks/09-grafana-https-apisix.md) | Expose Grafana over HTTPS through APISIX |
 | 10 | [10-argocd-https-apisix.md](runbooks/10-argocd-https-apisix.md) | Expose ArgoCD over HTTPS through APISIX |
 | 11 | [11-platform-entrypoints-gitops-transition.md](runbooks/11-platform-entrypoints-gitops-transition.md) | Prepare the transition from manual entrypoints to GitOps |
+| 12 | [12-vcluster-management.md](runbooks/12-vcluster-management.md) | Manage the dev/pre/pro vClusters |
+| 13 | [13-kargo-promotion-pipeline.md](runbooks/13-kargo-promotion-pipeline.md) | Kargo promotion pipeline (dev → pre → pro) |
+| 14 | [14-apisix-argocd-to-helm-migration.md](runbooks/14-apisix-argocd-to-helm-migration.md) | Migrate APISIX from ArgoCD to external Helm (kind) |
 
 ## Troubleshooting
 
