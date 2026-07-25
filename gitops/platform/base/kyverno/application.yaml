@@ -12,7 +12,10 @@ spec:
   source:
     repoURL: https://kyverno.github.io/kyverno/
     chart: kyverno
-    targetRevision: 3.7.1
+    # 3.8.x (Kyverno v1.18) soporta k8s v1.33-v1.35. La 3.7.1 (v1.17.1) usa el
+    # cliente v1alpha1 de MutatingAdmissionPolicy, retirado en k8s 1.35 -> el
+    # admission-controller crasheaba en cache sync (CrashLoop, sin cert TLS).
+    targetRevision: 3.8.2
     helm:
       values: |
         admissionController:
