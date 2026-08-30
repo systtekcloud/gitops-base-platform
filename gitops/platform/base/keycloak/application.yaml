@@ -12,7 +12,8 @@ spec:
   source:
     repoURL: https://cloudpirates-io.github.io/helm-charts
     chart: keycloak
-    targetRevision: 0.20.5
+    # cloudpirates/keycloak 0.21.33 -> Keycloak 26.7.2 (última chart + última app)
+    targetRevision: 0.21.33
     helm:
       values: |
         replicaCount: 1
