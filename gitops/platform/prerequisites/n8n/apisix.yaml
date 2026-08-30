@@ -1,0 +1,43 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: n8n-dev-local-lp-cert
+  namespace: n8n
+spec:
+  secretName: n8n-dev-local-lp-tls
+  dnsNames:
+    - n8n-dev.local.lp
+  issuerRef:
+    name: lab-local-ca
+    kind: ClusterIssuer
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixTls
+metadata:
+  name: n8n-dev-local-lp
+  namespace: n8n
+spec:
+  hosts:
+    - n8n-dev.local.lp
+  ingressClassName: apisix
+  secret:
+    name: n8n-dev-local-lp-tls
+    namespace: n8n
+---
+apiVersion: apisix.apache.org/v2
+kind: ApisixRoute
+metadata:
+  name: n8n-route
+  namespace: n8n
+spec:
+  ingressClassName: apisix
+  http:
+    - name: n8n
+      match:
+        hosts:
+          - n8n-dev.local.lp
+        paths:
+          - /*
+      backends:
+        - serviceName: n8n
+          servicePort: 5678

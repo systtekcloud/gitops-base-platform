@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: n8n
+  namespace: argo
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: cloudframe-platform
+  source:
+    repoURL: https://community-charts.github.io/helm-charts
+    chart: n8n
+    targetRevision: 1.24.34
+    helm:
+      values: |
+        fullnameOverride: n8n
+        db:
+          type: postgresdb
+        externalPostgresql:
+          host: n8n-pg-rw
+          port: 5432
+          username: n8n
+          database: n8n
+          # Secret con la key postgres-password (sincronizado por VSO desde Vault).
+          existingSecret: n8n-app
+        # Secret con la key N8N_ENCRYPTION_KEY (sincronizado por VSO desde Vault).
+        existingEncryptionKeySecret: n8n-app
+        main:
+          persistence:
+            enabled: true
+            size: 1Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: n8n
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
