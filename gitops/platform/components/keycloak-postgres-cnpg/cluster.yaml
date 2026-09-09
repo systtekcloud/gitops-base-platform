@@ -1,0 +1,27 @@
+# Instancia CNPG EN PARALELO al keycloak-postgresql (STS manual) que usa hoy el
+# Keycloak real. No hay cutover aquí: Keycloak sigue apuntando a keycloak-postgresql.
+# Objetivo: tener el Cluster CNPG sano antes de planificar la migración de datos
+# (pg_dump/restore, ventana de downtime) por separado.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: keycloak-cnpg
+  namespace: keycloak
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  storage:
+    size: 5Gi
+  bootstrap:
+    initdb:
+      database: keycloak
+      owner: keycloak
+      # Secret basic-auth (username/password) sincronizado por VSO desde Vault.
+      secret:
+        name: keycloak-cnpg-pg-app
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
