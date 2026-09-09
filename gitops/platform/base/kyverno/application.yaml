@@ -36,3 +36,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - Replace=true
+    managedNamespaceMetadata:
+      labels:
+        app.kubernetes.io/part-of: infra

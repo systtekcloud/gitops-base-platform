@@ -115,6 +115,38 @@ Operator manually seeds secret into Vault
 
 Apps do not need Vault SDK. They always consume native K8s Secrets.
 
+## Infra Component Grouping (label, not namespace)
+
+Platform-level operators (CloudNativePG, cert-manager, Kyverno, Crossplane,
+MongoDB operator, Kargo, Vault, VSO, MetalLB, APISIX) each keep their own
+namespace — the Helm community default, and what all their charts assume.
+They are **not** consolidated into a single shared namespace (e.g. `infra`).
+
+Instead, every infra-tier namespace carries the standard Kubernetes label:
+
+```yaml
+app.kubernetes.io/part-of: infra
+```
+
+This gives the "see them all at a glance" benefit (`kubectl get ns -l
+app.kubernetes.io/part-of=infra`) without the migration risk or the RBAC/quota
+coupling of merging unrelated operators into one namespace.
+
+**Where it's applied:**
+- ArgoCD-managed operators (`cnpg-system`, `cert-manager`, `kyverno`,
+  `crossplane-system`, `mongodb-operator`, `kargo`): via
+  `syncPolicy.managedNamespaceMetadata.labels` on each Application — declarative,
+  survives `CreateNamespace=true` re-syncs.
+- Externally-installed operators (`vault`, `vault-secrets-operator`,
+  `metallb-system`, `ingress-apisix` — installed by `cluster-kind-dev-to-pro`
+  scripts, outside ArgoCD): `kubectl label namespace ... --overwrite` right
+  after the `helm --create-namespace` step in the install script.
+
+**Explicitly NOT part of this grouping:** the actual application databases
+managed by the CloudNativePG *operator* (e.g. `n8n-pg-v2` in `n8n`,
+`keycloak-cnpg` in `keycloak`). Those are workload data, not infra — they stay
+in their owning app's namespace so RBAC/quotas remain scoped per app.
+
 ## Promotion Pipeline
 
 ```
