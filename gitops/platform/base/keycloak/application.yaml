@@ -30,11 +30,14 @@ spec:
           production: true
         database:
           type: postgres
-          host: keycloak-postgresql.keycloak.svc.cluster.local
+          # Cutover a CloudNativePG (2026-09-09): datos migrados con pg_dump/restore
+          # verificado (2 realms, 100 tablas, 8 usuarios, conteos idénticos). El
+          # antiguo StatefulSet manual (keycloak-postgresql) queda decomisionado.
+          host: keycloak-cnpg-rw.keycloak.svc.cluster.local
           port: "5432"
           name: keycloak
           username: keycloak
-          existingSecret: keycloak-db-secret
+          existingSecret: keycloak-cnpg-pg-app
           secretKeys:
             passwordKey: password
             usernameKey: username
