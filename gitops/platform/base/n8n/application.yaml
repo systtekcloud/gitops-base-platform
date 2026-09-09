@@ -19,7 +19,7 @@ spec:
         db:
           type: postgresdb
         externalPostgresql:
-          host: n8n-pg-rw
+          host: n8n-pg-v2-rw
           port: 5432
           username: n8n
           database: n8n

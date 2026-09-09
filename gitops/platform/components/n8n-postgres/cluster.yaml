@@ -1,18 +1,24 @@
+# n8n es green-field (sin datos relevantes aún) -> se recrea con nombre nuevo en
+# PG18 en vez de migrar. ArgoCD (prune:true) borra la Cluster vieja "n8n-pg" (PG17)
+# al dejar de estar declarada aquí, y crea "n8n-pg-v2" (PG18). n8n queda con la DB
+# vacía tras el repunte: hay que re-registrar la licencia community y recrear el
+# usuario owner (esperado, sin nada que perder).
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: n8n-pg
+  name: n8n-pg-v2
   namespace: n8n
 spec:
   instances: 1
-  imageName: ghcr.io/cloudnative-pg/postgresql:17
+  imageName: ghcr.io/cloudnative-pg/postgresql:18
   storage:
     size: 2Gi
   bootstrap:
     initdb:
       database: n8n
       owner: n8n
-      # Secret basic-auth (username/password) sincronizado por VSO desde Vault.
+      # Mismo secret basic-auth (username/password) sincronizado por VSO desde
+      # Vault; las credenciales no cambian, solo la instancia de Postgres.
       secret:
         name: n8n-pg-app
   # Recursos contenidos para el lab en kind.
