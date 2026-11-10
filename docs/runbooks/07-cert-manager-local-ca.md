@@ -117,15 +117,43 @@ Expected:
 
 ## Step 7 — Trust the local CA
 
-Export the CA certificate:
+> ⚠️ **This is a self-signed root CA.** Every time cert-manager renews it, it
+> generates a brand-new key pair and a brand-new chain of trust — even though
+> the Kubernetes `Secret` object keeps the same name. A previously-trusted
+> copy silently stops matching, and browsers start reporting "connection not
+> secure" with no other symptom. **Redo this step after every CA renewal**
+> (check `notBefore` below if in doubt).
+
+Export the CA certificate to a **persistent path** (not `/tmp`, which is
+cleared on reboot — this is why the import has had to be repeated before):
 
 ```bash
+mkdir -p ~/.local/share/lab-local-ca
 kubectl get secret lab-local-root-ca-secret -n cert-manager \
-  -o jsonpath='{.data.tls\.crt}' | base64 -d > /tmp/lab-local-root-ca.crt
+  -o jsonpath='{.data.tls\.crt}' | base64 -d > ~/.local/share/lab-local-ca/root-ca.crt
 ```
 
-Import `/tmp/lab-local-root-ca.crt` into the local trust store or browser profile
-used for the labs.
+Verify which CA you just exported (compare `notBefore` against when you last
+trusted one — if they don't match, the CA rotated and you must re-import):
+
+```bash
+openssl x509 -in ~/.local/share/lab-local-ca/root-ca.crt -noout -subject -dates -fingerprint -sha256
+```
+
+Import it into the trust stores that matter for the labs:
+
+```bash
+# 1) System trust store (covers curl and most non-browser tooling)
+sudo cp ~/.local/share/lab-local-ca/root-ca.crt /usr/local/share/ca-certificates/lab-local-root-ca.crt
+sudo update-ca-certificates
+
+# 2) Chrome on Linux uses its own NSS store, not the system one by default
+#    (install libnss3-tools if `certutil` is missing)
+certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n "lab-local-root-ca" -i ~/.local/share/lab-local-ca/root-ca.crt
+```
+
+Restart Chrome completely (close every window, not just the tab) before
+retrying `https://keycloak-dev.local.lp`, `https://n8n-dev.local.lp`, etc.
 
 Without this step, HTTPS may work technically while the browser still reports an
 unknown issuer.
