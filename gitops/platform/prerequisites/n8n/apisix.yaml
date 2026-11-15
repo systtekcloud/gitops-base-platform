@@ -33,6 +33,7 @@ spec:
   ingressClassName: apisix
   http:
     - name: n8n
+      websocket: true
       match:
         hosts:
           - n8n-dev.local.lp
