@@ -31,14 +31,16 @@ spec:
           persistence:
             enabled: true
             size: 1Gi
-          # n8n detrás de APISIX (proxy + TLS): URL pública correcta para webhooks/OAuth
-          editorBaseUrl: "https://n8n-dev.local.lp/"
+          # Acceso por port-forward a localhost:5678 (Google OAuth no admite *.local.lp
+          # como redirect URI, pero sí http://localhost:PUERTO).
+          # Para volver al acceso por APISIX: https://n8n-dev.local.lp/ (host, protocolo y webhook.url).
+          editorBaseUrl: "http://localhost:5678/"
           extraEnvVars:
-            N8N_HOST: "n8n-dev.local.lp"
-            N8N_PROTOCOL: "https"
+            N8N_HOST: "localhost"
+            N8N_PROTOCOL: "http"
             N8N_PROXY_HOPS: "1"     # confía en X-Forwarded-* de APISIX (1 hop)
         webhook:
-          url: "https://n8n-dev.local.lp/"
+          url: "http://localhost:5678/"
   destination:
     server: https://kubernetes.default.svc
     namespace: n8n
